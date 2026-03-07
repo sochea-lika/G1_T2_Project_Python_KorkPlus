@@ -4,9 +4,9 @@ from system_manager import SystemManager
 
 class User(Person):
     system = SystemManager() 
-    def __init__(self, user_id,name, password):
-        super().__init__(name, password)
-        self.user_id=user_id
+    def __init__(self, name, email, password):
+        super().__init__(name, email, password)
+
     def display_dashboard(self, events):
         print("\nUSER DASHBOARD")
         print("\nAvailable Events for Booking:\n")
@@ -52,12 +52,9 @@ def password_strength_validation(password):
     
     return False
 
+
 def register(system):
     users = system.load_users()
-
-    # generate next user ID
-    user_id = len(users) + 1
-
     while True:
         username = input("Enter a username to register: ")
         if username in users:
@@ -71,28 +68,26 @@ def register(system):
             print("Registration successful with a strong password!")
             break
 
-    user_obj = User(user_id, username, password)
+    user_obj = User(username, f"{username}@example.com", password)
     system.save_user(user_obj)
-
     return user_obj
+
 
 def login(system):
     users = system.load_users()
     attempt = 3
-
     while attempt > 0:
         username = input("Enter your username: ")
         password = input("Enter your password: ")
-
         if username not in users or password != users[username]:
             attempt -= 1
             print(f"Invalid credentials. You have {attempt} attempts left.")
         else:
             print(f"Login successful! Welcome, {username}")
-            return User(0, username, password)
-
-    print("Too many failed attempts. Access blocked.")
-    return None
+            return User(username, f"{username}@example.com", password)
+        if attempt == 0:
+            print("Too many failed attempts. Access blocked.")
+            return None
 
 
 def forgot_password(system):
@@ -167,4 +162,5 @@ if __name__ == "__main__":
     events[2].date = "2026-07-05"
 
     menu(events)
+
 
