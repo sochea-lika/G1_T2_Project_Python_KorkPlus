@@ -1,6 +1,4 @@
 
-
-
 from person import Person
 from event import Event
 from system_manager import SystemManager
