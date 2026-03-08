@@ -1,33 +1,22 @@
+
+
+
 from person import Person
 from event import Event
 from system_manager import SystemManager
+from booking_file import cancel_booking, create_booking, view_bookings,view_cancelled_bookings
+from admin import view_events
+from events import load_all_events
 
 class User(Person):
     system = SystemManager() 
-    def __init__(self, user_id,name, password):
-        super().__init__(name, password)
-        self.user_id=user_id
-    def display_dashboard(self, events):
-        print("\nUSER DASHBOARD")
-        print("\nAvailable Events for Booking:\n")
-        print("| ID | Event Name           | Date       | Price  | Available Seats       |")
-        print("|----|----------------------|------------|--------|------------------------|")
-        for event in events:
-            if event.available_seats == 0:
-                status = " SOLD OUT"
-            elif event.available_seats < 15:
-                status = f" {event.available_seats} Seats Remaining"
-            else:
-                status = f" {event.available_seats} Seats Remaining"
-            print(f"| {event.event_id:02} | {event.title:<20} | {event.date} | ${event.price:<5.2f} | {status:<22} |")
-
-        print("\nOptions: [1] Book Ticket | [2] Cancel Booking | [3] My Bookings | [4] Logout")
-
+    def __init__(self, user_id, name, email, password):
+        super().__init__(name, email, password)  
+        self.user_id = user_id
 
 # -------------------------------
-# Registration/Login System (file-based)
+# Password Validation
 # -------------------------------
-
 def password_strength_validation(password):
     if len(password) < 8:
         print("Password too short. Must be at least 8 characters.")
@@ -52,11 +41,12 @@ def password_strength_validation(password):
     
     return False
 
+# -------------------------------
+# Registration / Login
+# -------------------------------
 def register(system):
     users = system.load_users()
-
-    # generate next user ID
-    user_id = len(users) + 1
+    user_id = f"U{len(users)+1:03d}"
 
     while True:
         username = input("Enter a username to register: ")
@@ -65,15 +55,16 @@ def register(system):
             continue
         break
 
+    email = input("Enter your email: ")
+
     while True:
         password = input("Enter a password: ")
         if password_strength_validation(password):
             print("Registration successful with a strong password!")
             break
 
-    user_obj = User(user_id, username, password)
+    user_obj = User(user_id, username, email, password)
     system.save_user(user_obj)
-
     return user_obj
 
 def login(system):
@@ -84,12 +75,13 @@ def login(system):
         username = input("Enter your username: ")
         password = input("Enter your password: ")
 
-        if username not in users or password != users[username]:
+        if username not in users or password != users[username]["password"]:
             attempt -= 1
             print(f"Invalid credentials. You have {attempt} attempts left.")
         else:
             print(f"Login successful! Welcome, {username}")
-            return User(0, username, password)
+            user_data = users[username]
+            return User(user_data["id"], username, user_data["email"], password)
 
     print("Too many failed attempts. Access blocked.")
     return None
@@ -101,32 +93,56 @@ def forgot_password(system):
     if username not in users:
         print("This username is not registered. Please try again or register a new account.")
     else:
-        print(f"Your password is: {users[username]}")
-
+        print(f"Your password is: {users[username]['password']}")
 
 # -------------------------------
-# Unified User Dashboard Menu
+# User Dashboard
 # -------------------------------
-def user_dashboard_menu(user_obj, events):
+def user_dashboard_menu(user_obj):
     while True:
-        user_obj.display_dashboard(events)
-        choice = int(input("Select an option: "))
+        events = load_all_events()  # refresh events
 
-        match choice:
-            case 1:
-                break
-            case 2:
-                break
-            case 3: 
-                break
-            case 4:
-                print("Logging out...")
-                break
-            case _:
-                print("Invalid choice!")
+        print("\n===== USER DASHBOARD =====")
+        print("1. Create Booking")
+        print("2. Cancel Booking")
+        print("3. View All Events")
+        print("4. View My Bookings")
+        print("5. View My Cancelled Booking")
+        print("6. Logout")
 
+        choice = input("Enter option: ").strip()
 
-def menu(events):
+        if choice == "1":
+            view_events()
+            event_id = input("Enter Event ID (e.g., E001): ").strip()
+            qty = int(input("Enter quantity: ").strip())
+            create_booking(user_obj.user_id, event_id, qty)
+
+        elif choice == "2":
+            view_bookings(user_obj.user_id)
+            booking_id = input("Enter Booking ID (e.g., B001): ").strip()
+            cancel_booking(user_obj.user_id,booking_id)
+
+        elif choice == "3":
+            view_events()
+
+        elif choice == "4":
+            view_bookings(user_obj.user_id)
+            
+        elif choice == "5":
+            view_cancelled_bookings(user_obj.user_id)
+
+        elif choice == "6":
+            print("Logging out...")
+            break
+
+        else:
+            print("Invalid option. Try again.")
+
+# -------------------------------
+# Main Menu
+# -------------------------------
+def menu():
     system = SystemManager()
 
     while True:
@@ -135,36 +151,24 @@ def menu(events):
         print("2. Login")
         print("3. Forgot Password")
         print("4. Exit")
-        op = int(input("Choose an option (1-4): "))
+        op = input("Choose an option (1-4): ").strip()
 
-        match op:
-            case 1:
-                user_obj = register(system)
-                user_dashboard_menu(user_obj, events)
-            case 2:
-                user_obj = login(system)
-                
-                user_dashboard_menu(user_obj, events)
-            case 3:
-                forgot_password(system)
-            case 4:
-                print("Exiting the program. Goodbye!")
-                break
-            case _:
-                print("Please choose option 1 - 4.")
-
-
+        if op == "1":
+            user_obj = register(system)
+            user_dashboard_menu(user_obj)
+        elif op == "2":
+            user_obj = login(system)
+            if user_obj:
+                user_dashboard_menu(user_obj)
+        elif op == "3":
+            forgot_password(system)
+        elif op == "4":
+            print("Exiting the program. Goodbye!")
+            break
+        else:
+            print("Please choose option 1 - 4.")
 
 if __name__ == "__main__":
-    # Sample events
-    events = [
-        Event(1, "Music Festival 2026", 25.00, 45),
-        Event(2, "Python Tech Expo", 15.00, 12),
-        Event(3, "AI Startup Night", 50.00, 0)
-    ]
-    events[0].date = "2026-05-20"
-    events[1].date = "2026-06-12"
-    events[2].date = "2026-07-05"
+    menu()
 
-    menu(events)
 
