@@ -1,5 +1,5 @@
 
-import json, os
+import os
 from events import load_all_events, overwrite_event_file
 
 BOOKING_FILE = "bookings.txt"
@@ -82,7 +82,11 @@ def create_booking(user_id, event_id, quantity):
     events = load_all_events()
     bookings = load_all_bookings()
 
-    target_event = next((e for e in events if e["id"] == event_id), None)
+    target_event = None
+    for e in events:
+        if e["id"] == event_id:
+            target_event = e
+            break
     if not target_event:
         print("Event not found.")
         return
@@ -216,9 +220,11 @@ def view_bookings(user_id=None):
         return
 
     print("\n======= Booking History =======")
-    for idx, b in enumerate(bookings, start=1):
+    idx = 1
+    for b in bookings:
         if user_id and b["user_id"] != user_id:
             continue
+
 
         # Find the event linked to this booking
         event = next((e for e in events if e["id"] == b["event_id"]), None)
@@ -237,5 +243,9 @@ def view_bookings(user_id=None):
             print(f"Description  : {event['description']}")
             print(f"Price        : {event['price']}")
             print(f"Seats Available   : {event['seats_input']}")
+    idx += 1
     print("\n================= ==============")
 
+
+
+   
