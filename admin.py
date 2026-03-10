@@ -4,6 +4,7 @@ from events import load_all_events, save_new_event, overwrite_event_file,is_vali
 from password import password_strength_validation
 # from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
 from booking_file import get_tickets_by_event, get_total_seats_sold
+from tickets import load_all_tickets
 def generate_event_id():
     events = load_all_events()
     if not events:
@@ -111,6 +112,8 @@ def add_event():
             seats = int(seats_input)
             break
         print("  Please enter a valid number of seats.")
+        
+    
 
     new_event = {
         "id": event_id,
@@ -119,7 +122,8 @@ def add_event():
         "location": location,
         "description": description,
         "price": price,
-        "seats_input": seats_input
+        "seats_input": seats_input,
+        "seat_total": seats_input
     }
 
     save_new_event(new_event)
@@ -135,14 +139,14 @@ def view_events():
     # Print each event with a number
     for i, event in enumerate(events, start=1):
         print(f"\n  Event #{i}")
-        print(f"    ID          : {event['id']}")
-        print(f"    Title       : {event['title']}")
-        print(f"    Date        : {event['date']}")
-        print(f"    Location    : {event['location']}")
-        print(f"    Description : {event['description']}")
-        print(f"    Price       : {event['price']}")
-        print(f"    Seat       : {event['seats_input']}")
-        
+        print(f"    ID              : {event['id']}")
+        print(f"    Title           : {event['title']}")
+        print(f"    Date            : {event['date']}")
+        print(f"    Location        : {event['location']}")
+        print(f"    Description     : {event['description']}")
+        print(f"    Price           : {event['price']}")
+        print(f"    Total Seat      : {event['seat_total']}")
+        print(f"    Seat Remaining  : {event['seats_input']}")
 
 def edit_event():
     print("======== Edit event =========")
@@ -168,7 +172,7 @@ def edit_event():
     new_location  = input(f"Location [{target_event['location']}]    : ").strip()
     new_description = input(f"Description [{target_event['description']}] : ").strip()
     new_price = input(f"Price [{target_event['price']}] : ").strip()
-    new_seat = input(f"Seat [{target_event['seats_input']}] : ").strip()
+    new_seat = input(f"Seat [{target_event['seat_total']}] : ").strip()
     
 
     if new_title:  target_event["title"] = new_title
@@ -176,7 +180,7 @@ def edit_event():
     if new_location: target_event["location"] = new_location
     if new_description: target_event["description"] = new_description
     if new_price: target_event["price"] = new_price
-    if new_seat: target_event["seats_input"] = new_seat
+    if new_seat: target_event["seat_total"] = new_seat
     overwrite_event_file(events)
     print("Event updated successfully.")
 
@@ -214,30 +218,29 @@ def view_admins():
 def view_tickets():
     print("======== View Tickets Per Event =========")
     events = load_all_events()
-
+    
     if not events:
         print("No events found.")
         return
 
     for i, event in enumerate(events, start=1):
         tickets = get_tickets_by_event(event["id"])
-        seats_sold = get_total_seats_sold(event["id"])
-        seats_remaining = event["seats_input"] - seats_sold
+        seats_sold = event["seat_total"] -  event["seats_input"]
 
         print(f"\n  Event #{i}: {event['title']} (ID: {event['id']})")
-        print(f"    Total Seats     : {event['seats_input']}")
+        print(f"    Total Seats     : {event['seat_total']}")
         print(f"    Seats Sold      : {seats_sold}")
-        print(f"    Seats Remaining : {seats_remaining}")
+        print(f"    Seats Remaining : {event["seats_input"]}")
 
-        if not tickets:
-            print("    No tickets sold yet.")
-        else:
-            print("    Tickets:")
-            for ticket in tickets:
-                print(f"      - Ticket ID : {ticket['ticket_id']}")
-                print(f"        User      : {ticket['user_email']}")
-                print(f"        Quantity  : {ticket['quantity']}")
-                print(f"        Purchased : {ticket['date_purchased']}")
+        # if not tickets:
+        #     print("    No tickets sold yet.")
+        # else:
+        #     print("    Tickets:")
+        #     for ticket in tickets:
+        #         print(f"      - Ticket ID : {ticket['ticket_id']}")
+        #         print(f"        User      : {ticket['user_email']}")
+        #         print(f"        Quantity  : {ticket['quantity']}")
+        #         print(f"        Purchased : {ticket['date_purchased']}")
 
 # def cancel_ticket_action():
 #     print("======== Cancel Ticket =========")

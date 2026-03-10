@@ -4,32 +4,6 @@ from events import load_all_events, overwrite_event_file
 from tickets import save_all_tickets,load_all_tickets,generate_ticket_id
 BOOKING_FILE = "bookings.txt"
 CANCELLED_FILE = "cancelled_bookings.txt"
-# TICKET_FILE = "tickets.txt"
-# def load_all_tickets():
-#     if not os.path.exists(TICKET_FILE):
-#         return []
-
-#     tickets = []
-
-#     with open(TICKET_FILE, "r") as f:
-#         for line in f:
-#             parts = line.strip().split(" | ")
-
-#             if len(parts) == 4:
-#                 ticket_id, booking_id, user_id, event_id = parts
-
-#                 tickets.append({
-#                     "ticket_id": ticket_id,
-#                     "booking_id": booking_id,
-#                     "user_id": user_id,
-#                     "event_id": event_id
-#                 })
-
-#     return tickets
-# def save_all_tickets(tickets):
-#     with open(TICKET_FILE, "w") as f:
-#         for t in tickets:
-#             f.write(f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n")
 def load_all_bookings():
     if not os.path.exists(BOOKING_FILE):
         return []
@@ -70,32 +44,24 @@ def load_all_cancelled_bookings():
         for line in f:
             parts = line.strip().split(" | ")
 
-            if len(parts) >= 10:
-                booking_id, user_id, event_id, quantity, title, date, location, description, price, seats = parts
+            if len(parts) >= 4:
+                ticket_id, booking_id, user_id, event_id = parts
 
                 cancelled.append({
-                    "id": booking_id,
+                    "ticket_id": ticket_id,
+                    "booking_id": booking_id,
                     "user_id": user_id,
                     "event_id": event_id,
-                    "quantity": int(quantity),
-                    "title": title,
-                    "date": date,
-                    "location": location,
-                    "description": description,
-                    "price": price,
-                    "seats_input": seats
+                    
                 })
 
     return cancelled
 
-
-def save_all_cancelled_bookings(cancelled_bookings):
+def save_all_cancelled_bookings(cancelled_tickets):
     with open(CANCELLED_FILE, "w") as f:
-        for b in cancelled_bookings:
+        for t in cancelled_tickets:
             f.write(
-                f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']} | "
-                f"{b['title']} | {b['date']} | {b['location']} | {b['description']} | "
-                f"{b['price']} | {b['seats_input']}\n"
+                f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n"         
             )
 
 
@@ -107,77 +73,6 @@ def generate_booking_id(bookings):
     next_id = max(ids) + 1 if ids else 1
     return f"B{next_id:03d}"
 
-# def generate_ticket_id(bookings):
-
-#     if not bookings:
-#         return "T001"
-#     ids=[]
-#     ids = [int(b["ticket_id"][1:]) for b in bookings if b["ticket_id"].startswith("T")]
-#     next_id = max(ids) + 1 if ids else 1
-
-#     return f"T{next_id:03d}"
-# def generate_ticket_id(tickets):
-
-#     if not tickets:
-#         return "T001"
-
-#     ids = [int(t["ticket_id"][1:]) for t in tickets]
-#     next_id = max(ids) + 1
-
-#     return f"T{next_id:03d}"
-# def create_booking(user_id, event_id, quantity):
-#     events = load_all_events()
-#     bookings = load_all_bookings()
-
-#     target_event = None
-#     for e in events:
-#         if e["id"] == event_id:
-#             target_event = e
-#             break
-#     if not target_event:
-#         print("Event not found.")
-#         return
-
-#     seats_available = int(target_event["seats_input"])
-#     if seats_available < quantity:
-#         print("Not enough seats available.")
-#         return
-
-#     # calculate total price
-#     ticket_price = float(target_event["price"])
-#     total_price = ticket_price * quantity
-
-#     print("\n------ Payment Summary ------")
-#     print(f"Ticket Price : ${ticket_price}")
-#     print(f"Quantity     : {quantity}")
-#     print(f"Total Price  : ${total_price}")
-
-#     # payment input
-#     payment = float(input("Enter payment amount: $"))
-
-#     if payment < total_price:
-#         print("Payment not enough. Booking cancelled.")
-#         return
-
-#     change = payment - total_price
-#     print(f"Payment successful. Change: ${change}")
-
-    
-#     booking_id = generate_booking_id(bookings)
-#     for i in range(quantity):
-#         ticket_id = generate_ticket_id(bookings)
-
-#         new_row = {
-#             "id": booking_id,
-#             "user_id": user_id,
-#             "event_id": event_id,
-#             "quantity": 1,
-#             "ticket_id": ticket_id
-#         }
-
-#         bookings.append(new_row)
-#         save_all_bookings(bookings)
-#         print("\n All tickets hve been booked successfully")
 def create_booking(user_id, event_id, quantity):
 
     events = load_all_events()
@@ -251,90 +146,110 @@ def create_booking(user_id, event_id, quantity):
 
     print("\nBooking completed successfully.")
 def get_tickets_by_event(event_id):
-    all_tickets = load_all_bookings()
+    all_tickets = load_all_tickets()
     return [t for t in all_tickets if t["event_id"] == event_id]
 
 def get_total_seats_sold(event_id,):
     tickets = get_tickets_by_event(event_id)
     return sum(t["quantity"] for t in tickets)
 
-def cancel_booking(user_id, tickets):
-    
+def cancel_ticket(user_id, ticket_id):
 
     tickets = load_all_tickets()
 
-    # Find ticket belonging to this user only
-    target = next((b for b in tickets if b["id"] == ti and b["user_id"] == user_id), None)
+    # find ticket belonging to this user
+    target = next((t for t in tickets if t["ticket_id"] == ticket_id and t["user_id"] == user_id), None)
 
     if not target:
-        print("Booking not found or this booking does not belong to you.")
+        print("Ticket not found or does not belong to you.")
         return
 
-    # restore seats
+    # restore event seat
     events = load_all_events()
     event = next((e for e in events if e["id"] == target["event_id"]), None)
 
     if event:
-        event["seats_input"] = str(int(event["seats_input"]) + target["quantity"])
+        event["seats_input"] = str(int(event["seats_input"]) + 1)
         overwrite_event_file(events)
 
-    # remove from active bookings
-    bookings = [b for b in bookings if b["id"] != booking_id]
-    save_all_bookings(bookings)
+    # remove ticket from ticket list
+    tickets = [t for t in tickets if t["ticket_id"] != ticket_id]
+    save_all_tickets(tickets)
 
+    # update booking quantity
+    bookings = load_all_bookings()
+
+    for b in bookings:
+        if b["id"] == target["booking_id"]:
+            b["quantity"] -= 1
+
+    # remove booking if no tickets left
+    bookings = [b for b in bookings if b["quantity"] > 0]
+
+    save_all_bookings(bookings)
     # save into cancelled bookings
     cancelled_bookings = load_all_cancelled_bookings()
 
     cancelled_bookings.append({
-        "id": target["id"],
+        "ticket_id": target["ticket_id"],
+        "booking_id": target["booking_id"],
         "user_id": target["user_id"],
         "event_id": target["event_id"],
-        "quantity": target["quantity"],
-        "title": event["title"],
-        "date": event["date"],
-        "location": event["location"],
-        "description": event["description"],
-        "price": event["price"],
-        "seats_input": event["seats_input"]
+        
     })
-
     save_all_cancelled_bookings(cancelled_bookings)
 
-    print(f"Booking {booking_id} cancelled successfully.")
-
-
+    print(f"Ticket {ticket_id} cancelled successfully.")
+    
 def view_cancelled_bookings(user_id=None):
+
     cancelled = load_all_cancelled_bookings()
 
     if not cancelled:
-        print("No cancelled bookings found.")
+        print("No cancelled tickets found.")
         return
 
-    print("\n======= Cancelled Bookings =======")
+    print("\n======= Cancelled Tickets =======")
 
-    for b in cancelled:
+    for t in cancelled:
 
-        # show only this user's data
+        if user_id and t["user_id"] != user_id:
+            continue
+
+        print(f"\nTicket ID    : {t['ticket_id']}")
+        print(f"Booking ID   : {t['booking_id']}")
+        print(f"User ID      : {t['user_id']}")
+        print(f"Event ID     : {t['event_id']}")
+
+    print("\n===============================")
+def view_tickets(user_id=None):
+    tickets = load_all_tickets()
+    events = load_all_events()
+
+    if not tickets:
+        print("No tickets found.")
+        return
+
+    print("\n======= Booking History =======")
+    idx = 1
+    for b in tickets:
         if user_id and b["user_id"] != user_id:
             continue
 
-        print(f"\nBooking ID   : {b['id']}")
+
+        # Find the event linked to this booking
+        event = next((e for e in events if e["id"] == b["event_id"]), None)
+
+        print(f"\nTickets #{idx}")
+        print(f"Ticket ID    : {b['ticket_id']}")
+        print(f"Booking ID   : {b['booking_id']}")
         print(f"User ID      : {b['user_id']}")
         print(f"Event ID     : {b['event_id']}")
-        print(f"Quantity     : {b['quantity']}")
+        
 
-        print("----- Event Details -----")
-        print(f"Title        : {b['title']}")
-        print(f"Date         : {b['date']}")
-        print(f"Location     : {b['location']}")
-        print(f"Description  : {b['description']}")
-        print(f"Price        : {b['price']}")
-        print(f"Seats Left   : {b['seats_input']}")
-
-    print("\n==================================")
-
-
-def view_bookings(user_id=None):
+    idx += 1
+    print("\n================= ==============")
+def view_booking(user_id=None):
     bookings = load_all_bookings()
     events = load_all_events()
 
