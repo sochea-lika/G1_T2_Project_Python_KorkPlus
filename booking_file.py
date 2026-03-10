@@ -4,6 +4,9 @@ from events import load_all_events, overwrite_event_file
 from tickets import save_all_tickets,load_all_tickets,generate_ticket_id
 BOOKING_FILE = "bookings.txt"
 CANCELLED_FILE = "cancelled_bookings.txt"
+from rich.console import Console
+from rich.table import Table
+
 def load_all_bookings():
     if not os.path.exists(BOOKING_FILE):
         return []
@@ -93,11 +96,24 @@ def create_booking(user_id, event_id, quantity):
 
     ticket_price = float(target_event["price"])
     total_price = ticket_price * quantity
+  
+    console = Console()
 
-    print("\n------ Payment Summary ------")
-    print(f"Ticket Price : ${ticket_price}")
-    print(f"Quantity     : {quantity}")
-    print(f"Total Price  : ${total_price}")
+    table = Table(title="Payment Table")
+
+    table.add_column("Ticket Price", style="cyan")
+    table.add_column("Quantity", justify="right", style="magenta")
+    table.add_column("Total Price", justify="right", style="green")
+
+    # 3. Add the Data (The Row)
+    # Use f-strings to convert your variables into strings
+    table.add_row(
+        f"${ticket_price:.2f}", 
+        str(quantity), 
+        f"${total_price:.2f}"
+    )
+
+    console.print(table)
 
     payment = float(input("Enter payment amount: $"))
 
@@ -135,8 +151,7 @@ def create_booking(user_id, event_id, quantity):
         }
 
         tickets.append(new_ticket)
-
-        print(ticket_id)
+        print(ticket_id, end = " ")
 
     save_all_tickets(tickets)
 
@@ -145,6 +160,7 @@ def create_booking(user_id, event_id, quantity):
     overwrite_event_file(events)
 
     print("\nBooking completed successfully.")
+
 def get_tickets_by_event(event_id):
     all_tickets = load_all_tickets()
     return [t for t in all_tickets if t["event_id"] == event_id]
@@ -249,6 +265,7 @@ def view_tickets(user_id=None):
 
     idx += 1
     print("\n================= ==============")
+
 def view_booking(user_id=None):
     bookings = load_all_bookings()
     events = load_all_events()

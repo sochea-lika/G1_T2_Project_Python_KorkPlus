@@ -25,11 +25,11 @@ class SystemManager:
         if os.path.exists(self.users_file):
             try:
                 with open(self.users_file, "r") as f:
-                    lines = f.readline()
+                    lines = f.readlines()
                     if not lines: return users
 
                     #skip first line / header
-                    for line in lines[1:]:
+                    for line in lines:
                         parts = line.strip().split(",")
                         if len(parts) == 4:
                             user_id, name, email, password = parts

@@ -5,6 +5,8 @@ from password import password_strength_validation
 # from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
 from booking_file import get_tickets_by_event, get_total_seats_sold
 from tickets import load_all_tickets
+from password_dot import get_password_with_dots
+
 def generate_event_id():
     events = load_all_events()
     if not events:
@@ -36,7 +38,7 @@ def register():
         return
     
     while True:
-        password = input("Enter password:").strip()
+        password = get_password_with_dots("Enter password:").strip()
         if password_strength_validation(password):
             break
     
@@ -48,7 +50,7 @@ def register():
 def sign_in():
     print("======== Sign in =========")
     email = input("Enter email :").strip()
-    password = input("Enter password:").strip()
+    password = get_password_with_dots("Enter password:").strip()
 
     admin = find_admin_by_email(email)
     

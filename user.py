@@ -6,29 +6,7 @@ from booking_file import cancel_ticket, create_booking, view_booking,view_cancel
 from admin import view_events
 from events import load_all_events
 from password import password_strength_validation
-import msvcrt
-import sys
-
-def get_password_with_dots(prompt="Enter password: "):
-    print(prompt, end='', flush=True)
-    password = ""
-    while True:
-        # Get a single character without showing it
-        char = msvcrt.getch().decode('utf-8')
-        
-        if char == '\r' or char == '\n':  # Enter key
-            print()
-            return password
-        elif char == '\b':  # Backspace key
-            if len(password) > 0:
-                password = password[:-1]
-                # Erase the last dot from the screen
-                sys.stdout.write('\b \b')
-                sys.stdout.flush()
-        else:
-            password += char
-            sys.stdout.write('•') # Show a dot instead of the letter
-            sys.stdout.flush()
+from password_dot import get_password_with_dots
 
 class User(Person):
     system = SystemManager() 
@@ -79,7 +57,6 @@ def login(system):
         if username in users and password == users[username]["password"]:
             print(f"Login successful! Welcome, {username}")
             user_data = users[username]
-            # Use input_hash (or user_data["password"]) for the object
             return User(user_data["id"], username, user_data["email"], password)
         else:
             attempt -= 1
