@@ -21,4 +21,4 @@ def password_strength_validation(password):
     else:
         return True
     
-    return False
+    return False 

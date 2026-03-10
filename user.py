@@ -5,39 +5,36 @@ from system_manager import SystemManager
 from booking_file import cancel_booking, create_booking, view_bookings,view_cancelled_bookings
 from admin import view_events
 from events import load_all_events
+from password import password_strength_validation
+import msvcrt
+import sys
+
+def get_password_with_dots(prompt="Enter password: "):
+    print(prompt, end='', flush=True)
+    password = ""
+    while True:
+        # Get a single character without showing it
+        char = msvcrt.getch().decode('utf-8')
+        
+        if char == '\r' or char == '\n':  # Enter key
+            print()
+            return password
+        elif char == '\b':  # Backspace key
+            if len(password) > 0:
+                password = password[:-1]
+                # Erase the last dot from the screen
+                sys.stdout.write('\b \b')
+                sys.stdout.flush()
+        else:
+            password += char
+            sys.stdout.write('•') # Show a dot instead of the letter
+            sys.stdout.flush()
 
 class User(Person):
     system = SystemManager() 
     def __init__(self, user_id, name, email, password):
         super().__init__(name, email, password)  
         self.user_id = user_id
-
-# -------------------------------
-# Password Validation
-# -------------------------------
-def password_strength_validation(password):
-    if len(password) < 8:
-        print("Password too short. Must be at least 8 characters.")
-        return False
-    
-    special_character = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
-    has_lower = any(c.islower() for c in password)
-    has_upper = any(c.isupper() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    has_special = any(c in special_character for c in password)
-
-    if not has_lower:
-        print("Password must contain at least one lowercase letter.")
-    elif not has_upper:
-        print("Password must contain at least one uppercase letter.")
-    elif not has_digit:
-        print("Password must contain at least one digit.")
-    elif not has_special:
-        print("Password must contain at least one special character.")
-    else:
-        return True
-    
-    return False
 
 # -------------------------------
 # Registration / Login
@@ -55,10 +52,16 @@ def register(system):
 
     email = input("Enter your email: ")
 
+    # while True:
+    #     password = input("Enter a password: ")
+    #     if password_strength_validation(password):
+    #         print("Registration successful with a strong password!")
+    #         break
+
     while True:
-        password = input("Enter a password: ")
+        password = get_password_with_dots("Enter a password: ")
         if password_strength_validation(password):
-            print("Registration successful with a strong password!")
+            print("Registration successful!")
             break
 
     user_obj = User(user_id, username, email, password)
@@ -71,23 +74,24 @@ def login(system):
 
     while attempt > 0:
         username = input("Enter your username: ")
-        password = input("Enter your password: ")
-
-        if username not in users or password != users[username]["password"]:
-            attempt -= 1
-            print(f"Invalid credentials. You have {attempt} attempts left.")
-        else:
+        password = get_password_with_dots("Enter your password: ")
+     
+        if username in users and password == users[username]["password"]:
             print(f"Login successful! Welcome, {username}")
             user_data = users[username]
+            # Use input_hash (or user_data["password"]) for the object
             return User(user_data["id"], username, user_data["email"], password)
+        else:
+            attempt -= 1
+            print(f"Invalid credentials. You have {attempt} attempts left.")
 
     print("Too many failed attempts. Access blocked.")
     return None
 
-
 def forgot_password(system):
     users = system.load_users()
     username = input("Enter your username to retrieve your password: ")
+
     if username not in users:
         print("This username is not registered. Please try again or register a new account.")
     else:
