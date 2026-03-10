@@ -1,25 +1,55 @@
 
 import os
 from events import load_all_events, overwrite_event_file
-
+from tickets import save_all_tickets,load_all_tickets,generate_ticket_id
 BOOKING_FILE = "bookings.txt"
 CANCELLED_FILE = "cancelled_bookings.txt"
+# TICKET_FILE = "tickets.txt"
+# def load_all_tickets():
+#     if not os.path.exists(TICKET_FILE):
+#         return []
 
+#     tickets = []
+
+#     with open(TICKET_FILE, "r") as f:
+#         for line in f:
+#             parts = line.strip().split(" | ")
+
+#             if len(parts) == 4:
+#                 ticket_id, booking_id, user_id, event_id = parts
+
+#                 tickets.append({
+#                     "ticket_id": ticket_id,
+#                     "booking_id": booking_id,
+#                     "user_id": user_id,
+#                     "event_id": event_id
+#                 })
+
+#     return tickets
+# def save_all_tickets(tickets):
+#     with open(TICKET_FILE, "w") as f:
+#         for t in tickets:
+#             f.write(f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n")
 def load_all_bookings():
     if not os.path.exists(BOOKING_FILE):
         return []
+
     bookings = []
+
     with open(BOOKING_FILE, "r") as f:
         for line in f:
             parts = line.strip().split(" | ")
+
             if len(parts) == 4:
                 booking_id, user_id, event_id, quantity = parts
+
                 bookings.append({
                     "id": booking_id,
                     "user_id": user_id,
                     "event_id": event_id,
                     "quantity": int(quantity)
                 })
+
     return bookings
 
 
@@ -28,7 +58,6 @@ def save_all_bookings(bookings):
     with open(BOOKING_FILE, "w") as f:
         for b in bookings:
             f.write(f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']}\n")
-
 
 
 def load_all_cancelled_bookings():
@@ -70,33 +99,103 @@ def save_all_cancelled_bookings(cancelled_bookings):
             )
 
 
-def generate_booking_id():
-    bookings = load_all_bookings()
+def generate_booking_id(bookings):
     if not bookings:
         return "B001"
+    ids=[]
     ids = [int(b["id"][1:]) for b in bookings if b["id"].startswith("B")]
-    next_id = max(ids) + 1
+    next_id = max(ids) + 1 if ids else 1
     return f"B{next_id:03d}"
 
+# def generate_ticket_id(bookings):
+
+#     if not bookings:
+#         return "T001"
+#     ids=[]
+#     ids = [int(b["ticket_id"][1:]) for b in bookings if b["ticket_id"].startswith("T")]
+#     next_id = max(ids) + 1 if ids else 1
+
+#     return f"T{next_id:03d}"
+# def generate_ticket_id(tickets):
+
+#     if not tickets:
+#         return "T001"
+
+#     ids = [int(t["ticket_id"][1:]) for t in tickets]
+#     next_id = max(ids) + 1
+
+#     return f"T{next_id:03d}"
+# def create_booking(user_id, event_id, quantity):
+#     events = load_all_events()
+#     bookings = load_all_bookings()
+
+#     target_event = None
+#     for e in events:
+#         if e["id"] == event_id:
+#             target_event = e
+#             break
+#     if not target_event:
+#         print("Event not found.")
+#         return
+
+#     seats_available = int(target_event["seats_input"])
+#     if seats_available < quantity:
+#         print("Not enough seats available.")
+#         return
+
+#     # calculate total price
+#     ticket_price = float(target_event["price"])
+#     total_price = ticket_price * quantity
+
+#     print("\n------ Payment Summary ------")
+#     print(f"Ticket Price : ${ticket_price}")
+#     print(f"Quantity     : {quantity}")
+#     print(f"Total Price  : ${total_price}")
+
+#     # payment input
+#     payment = float(input("Enter payment amount: $"))
+
+#     if payment < total_price:
+#         print("Payment not enough. Booking cancelled.")
+#         return
+
+#     change = payment - total_price
+#     print(f"Payment successful. Change: ${change}")
+
+    
+#     booking_id = generate_booking_id(bookings)
+#     for i in range(quantity):
+#         ticket_id = generate_ticket_id(bookings)
+
+#         new_row = {
+#             "id": booking_id,
+#             "user_id": user_id,
+#             "event_id": event_id,
+#             "quantity": 1,
+#             "ticket_id": ticket_id
+#         }
+
+#         bookings.append(new_row)
+#         save_all_bookings(bookings)
+#         print("\n All tickets hve been booked successfully")
 def create_booking(user_id, event_id, quantity):
+
     events = load_all_events()
     bookings = load_all_bookings()
+    tickets = load_all_tickets()
 
-    target_event = None
-    for e in events:
-        if e["id"] == event_id:
-            target_event = e
-            break
+    target_event = next((e for e in events if e["id"] == event_id), None)
+
     if not target_event:
         print("Event not found.")
         return
 
     seats_available = int(target_event["seats_input"])
+
     if seats_available < quantity:
-        print("Not enough seats available.")
+        print("Not enough seats.")
         return
 
-    # calculate total price
     ticket_price = float(target_event["price"])
     total_price = ticket_price * quantity
 
@@ -105,43 +204,67 @@ def create_booking(user_id, event_id, quantity):
     print(f"Quantity     : {quantity}")
     print(f"Total Price  : ${total_price}")
 
-    # payment input
     payment = float(input("Enter payment amount: $"))
 
     if payment < total_price:
-        print("Payment not enough. Booking cancelled.")
+        print("Payment not enough.")
         return
 
     change = payment - total_price
     print(f"Payment successful. Change: ${change}")
 
     # create booking
-    booking_id = generate_booking_id()
+    booking_id = generate_booking_id(bookings)
 
-    new_booking = {
+    bookings.append({
         "id": booking_id,
         "user_id": user_id,
         "event_id": event_id,
         "quantity": quantity
-    }
+    })
 
-    bookings.append(new_booking)
     save_all_bookings(bookings)
+
+    # create tickets
+    print("\nYour Ticket IDs:")
+
+    for i in range(quantity):
+
+        ticket_id = generate_ticket_id(tickets)
+
+        new_ticket = {
+            "ticket_id": ticket_id,
+            "booking_id": booking_id,
+            "user_id": user_id,
+            "event_id": event_id
+        }
+
+        tickets.append(new_ticket)
+
+        print(ticket_id)
+
+    save_all_tickets(tickets)
 
     # reduce seats
     target_event["seats_input"] = str(seats_available - quantity)
     overwrite_event_file(events)
 
-    print(f"\nBooking {booking_id} created successfully.")
+    print("\nBooking completed successfully.")
+def get_tickets_by_event(event_id):
+    all_tickets = load_all_bookings()
+    return [t for t in all_tickets if t["event_id"] == event_id]
 
+def get_total_seats_sold(event_id,):
+    tickets = get_tickets_by_event(event_id)
+    return sum(t["quantity"] for t in tickets)
 
-def cancel_booking(user_id, booking_id):
+def cancel_booking(user_id, tickets):
     
 
-    bookings = load_all_bookings()
+    tickets = load_all_tickets()
 
-    # Find booking belonging to this user only
-    target = next((b for b in bookings if b["id"] == booking_id and b["user_id"] == user_id), None)
+    # Find ticket belonging to this user only
+    target = next((b for b in tickets if b["id"] == ti and b["user_id"] == user_id), None)
 
     if not target:
         print("Booking not found or this booking does not belong to you.")

@@ -16,7 +16,7 @@ def load_all_events():
                         "location":parts[3],
                         "description": parts[4],
                         "price": parts[5],
-                        "seats_input": parts[6]
+                        "seats_input":int(parts[6])
                     }
                     events.append(event)
     return events

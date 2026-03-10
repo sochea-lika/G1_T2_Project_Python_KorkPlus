@@ -2,7 +2,8 @@ import uuid
 from admin_file import Admin, load_all_admins, save_new_admin, overwrite_admin_file, find_admin_by_email
 from events import load_all_events, save_new_event, overwrite_event_file,is_valid_date
 from password import password_strength_validation
-from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
+# from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
+from booking_file import get_tickets_by_event, get_total_seats_sold
 def generate_event_id():
     events = load_all_events()
     if not events:
@@ -221,10 +222,10 @@ def view_tickets():
     for i, event in enumerate(events, start=1):
         tickets = get_tickets_by_event(event["id"])
         seats_sold = get_total_seats_sold(event["id"])
-        seats_remaining = event["seats"] - seats_sold
+        seats_remaining = event["seats_input"] - seats_sold
 
         print(f"\n  Event #{i}: {event['title']} (ID: {event['id']})")
-        print(f"    Total Seats     : {event['seats']}")
+        print(f"    Total Seats     : {event['seats_input']}")
         print(f"    Seats Sold      : {seats_sold}")
         print(f"    Seats Remaining : {seats_remaining}")
 

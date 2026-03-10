@@ -118,8 +118,8 @@ def user_dashboard_menu(user_obj):
 
         elif choice == "2":
             view_bookings(user_obj.user_id)
-            booking_id = input("Enter Booking ID (e.g., B001): ").strip()
-            cancel_booking(user_obj.user_id,booking_id)
+            ticket_id = input("Enter Ticket ID (e.g., B001): ").strip()
+            cancel_booking(user_obj.user_id, ticket_id)
 
         elif choice == "3":
             view_events()

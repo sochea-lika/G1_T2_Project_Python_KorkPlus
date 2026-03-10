@@ -1,2 +1,3 @@
 U001,lika,lika@gmail.com,X1234567890c!
 U002,roth,roth@gmail.com,C1234567890c!
+U003,star,star@gmail.com,V1234567890#v
