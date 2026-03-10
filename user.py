@@ -1,8 +1,8 @@
 
 from person import Person
-from event import Event
+# from event import Event
 from system_manager import SystemManager
-from booking_file import cancel_booking, create_booking, view_bookings,view_cancelled_bookings
+from booking_file import cancel_ticket, create_booking, view_booking,view_cancelled_bookings,view_tickets
 from admin import view_events
 from events import load_all_events
 from password import password_strength_validation
@@ -121,15 +121,15 @@ def user_dashboard_menu(user_obj):
             create_booking(user_obj.user_id, event_id, qty)
 
         elif choice == "2":
-            view_bookings(user_obj.user_id)
-            ticket_id = input("Enter Ticket ID (e.g., B001): ").strip()
-            cancel_booking(user_obj.user_id, ticket_id)
+            view_tickets(user_obj.user_id)
+            ticket_id = input("Enter Ticket ID (e.g., T001): ").strip()
+            cancel_ticket(user_obj.user_id, ticket_id)
 
         elif choice == "3":
             view_events()
 
         elif choice == "4":
-            view_bookings(user_obj.user_id)
+            view_booking(user_obj.user_id)
             
         elif choice == "5":
             view_cancelled_bookings(user_obj.user_id)

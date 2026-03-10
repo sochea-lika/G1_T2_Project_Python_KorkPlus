@@ -105,3 +105,4 @@ def generate_ticket_id(tickets):
     next_id = max(ids) + 1
 
     return f"T{next_id:03d}"
+
