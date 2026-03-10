@@ -7,7 +7,7 @@ from booking_file import get_tickets_by_event, get_total_seats_sold
 from tickets import load_all_tickets
 from password_dot import get_password_with_dots
 
-def generate_event_id():
+def generate_event_id():     
     events = load_all_events()
     if not events:
         return "E001"
@@ -30,7 +30,7 @@ def generate_event_id():
 
 def register():
     print("======== Register=========")
-    name = input("Enter name:").strip()
+    name = input("Enter names:").strip()
     email = input("Enter email:").strip()
 
     if find_admin_by_email(email):
