@@ -1,24 +1,41 @@
-# Check password
-def password_strength_validation(password):
-    if len(password) < 8:
-        print("Password too short. Must be at least 8 characters.")
-        return False
-    
-    special_character = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
-    has_lower = any(c.islower() for c in password)
-    has_upper = any(c.isupper() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    has_special = any(c in special_character for c in password)
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
-    if not has_lower:
-        print("Password must contain at least one lowercase letter.")
-    elif not has_upper:
-        print("Password must contain at least one uppercase letter.")
-    elif not has_digit:
-        print("Password must contain at least one digit.")
-    elif not has_special:
-        print("Password must contain at least one special character.")
-    else:
-        return True
+console = Console()
+
+def password_strength_validation(password):
+    # Setup for checks
+    special_characters = "!@#$%^&*()"
     
-    return False 
+    # Validation Logic
+    checks = {
+        "Length (8+)": len(password) >= 8,
+        "Lowercase": any(c.islower() for c in password),
+        "Uppercase": any(c.isupper() for c in password),
+        "Digit": any(c.isdigit() for c in password),
+        "Special Character": any(c in special_characters for c in password)
+    }
+
+    # If all checks pass, return True immediately
+    if all(checks.values()):
+        console.print("[bold green]✔ Password meets all security requirements![/]")
+        return True
+
+    # Otherwise, show a "Requirement Report"
+    feedback = Text()
+    feedback.append("Password Security Requirements:\n\n", style="bold white")
+
+    for requirement, passed in checks.items():
+        icon = "✅" if passed else "❌"
+        color = "green" if passed else "red"
+        feedback.append(f"{icon} {requirement}\n", style=color)
+
+    console.print(Panel(
+        feedback, 
+        title="[bold red]Weak Password[/]", 
+        border_style="red",
+        expand=False
+    ))
+    
+    return False

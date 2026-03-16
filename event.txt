@@ -1,2 +1,2 @@
-E001|CADT_concert|2026-06-12|CADT|For happy new year|2|66|100
-E002|Gekleang concert|2026-04-06|Pagoda|for all my crush|10|82|150
+E001|CADT_concert|2026-06-12|CADT|For happy new year|2|59|100
+E002|Gekleang Concert|2026-04-06|Koh Pich|For all Gekleang's girlfriends|10|82|100
