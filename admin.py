@@ -22,7 +22,7 @@ from rich.spinner import SPINNERS
 
 console = Console()
 
-def generate_event_id():
+def generate_event_id():     
     events = load_all_events()
     if not events:
         return "E001"
@@ -43,10 +43,16 @@ def generate_event_id():
     return f"E{next_id:03d}"
 
 def register():
+<<<<<<< HEAD
     # Header for the Admin Registration
     console.print("\n" + "━" * 40, style="bright_blue")
     console.print("[bold gold1] 🔑 ADMIN ACCOUNT CREATION [/]", justify="center")
     console.print("━" * 40 + "\n", style="bright_blue")
+=======
+    print("======== Register=========")
+    name = input("Enter names:").strip()
+    email = input("Enter email:").strip()
+>>>>>>> 5cd078a1a60f9aab99cbebc43a7946c25c384c8f
 
     # 1. Get Admin Details using Rich Prompt
     name = Prompt.ask("[bold white]Full Name[/]").strip()
