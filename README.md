@@ -47,12 +47,53 @@ pit install rich
     2.User Panel
     3.Exit
     -> Click 1 (Admin)
-    Admin:
-    1.Register
-    2.Sign in
-    3.Forget Password
-    4.Exit program
-    -> Click (1)
+       Admin:
+       1.Register
+       2.Sign in
+       3.Forget Password
+       4.Exit program
+       -> Click 1 (Register)
+         .Enter Username
+         .Enter Email
+         .Enter password :required strong password
+         👉 Show successfull and back to Page Admin for Sign in
+      -> Click 2 (Sign in)
+         .Enter gmail
+         .Verify password
+         👉 If successfull show Admin dashboard
+          1.Add New Event
+          2.Edit Existing
+          3.Browse Events
+          4.Delete Event
+          5.Sales Overview
+          6.Admin Account
+          7.Lagout
+          8.Shutdown System
+         -> Click 1 (Add new event)
+            . Enter Title
+            . Enter Data: required Format(YYYY-MM-DD)
+            . Enter Location
+            . Enter Description
+            . Enter Price
+            . Enter Total Seats : required interger not float
+         -> Click 2 (Edit event)
+            . Enter ID event
+            . If don't want to update just click key "Enter"
+         -> Click 3 (View all events)
+            . Program show all events with all info's events
+            . Press Enter to back to Dashboard Admin
+         -> Click 4 (Delete event)
+            . Enter ID event
+            . Program will ask you make sure want delete or not just write "y" for yes and "n" for no
+         -> Click 5 (Sale overview)
+
+            
+            
+
+
+
+
+
 
 
 
