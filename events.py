@@ -1,5 +1,11 @@
 import os
 from datetime import datetime
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from datetime import datetime
+
+console = Console()
 
 Event_file = "event.txt"
 def load_all_events():
@@ -37,5 +43,18 @@ def is_valid_date(date_text):
         datetime.strptime(date_text, "%Y-%m-%d")
         return True
     except ValueError:
-        print("  Invalid date format. Please use YYYY-MM-DD (example: 2026-03-07)")
+        # Create a stylized error message
+        error_content = Text.assemble(
+            ("📅 ", "yellow"),
+            ("Invalid Date Format!\n", "bold white"),
+            ("Expected: ", "dim"), ("YYYY-MM-DD", "bold cyan"),
+            ("\nExample : ", "dim"), ("2026-03-16", "green")
+        )
+
+        console.print(Panel(
+            error_content,
+            title="[bold red]Format Error[/]",
+            border_style="red",
+            expand=False
+        ))
         return False
