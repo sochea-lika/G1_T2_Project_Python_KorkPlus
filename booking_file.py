@@ -139,22 +139,6 @@ def create_booking(user_id, event_id, quantity):
 
     save_all_bookings(bookings)
 
-    # create tickets
-    # console.print("Your Ticket IDs:",style="bold red")
-
-    # for i in range(quantity):
-
-    #     ticket_id = generate_ticket_id(tickets)
-
-    #     new_ticket = {
-    #         "ticket_id": ticket_id,
-    #         "booking_id": booking_id,
-    #         "user_id": user_id,
-    #         "event_id": event_id
-    #     }
-
-    #     tickets.append(new_ticket)
-    #     print(ticket_id, end = ", ")
     ticket_panels = []
 
     for i in range(quantity):
@@ -199,6 +183,8 @@ def create_booking(user_id, event_id, quantity):
     overwrite_event_file(events)
 
     print("\nBooking completed successfully.")
+    # Add this at the very bottom of your view functions
+    console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
 
 def get_tickets_by_event(event_id):
     all_tickets = load_all_tickets()

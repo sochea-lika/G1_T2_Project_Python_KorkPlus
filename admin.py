@@ -19,6 +19,7 @@ from rich.prompt import Confirm
 from rich.box import DOUBLE_EDGE
 from rich.columns import Columns
 from rich.spinner import SPINNERS
+from booking_file import load_all_bookings
 
 console = Console()
 
@@ -43,19 +44,13 @@ def generate_event_id():
     return f"E{next_id:03d}"
 
 def register():
-<<<<<<< HEAD
     # Header for the Admin Registration
     console.print("\n" + "━" * 40, style="bright_blue")
     console.print("[bold gold1] 🔑 ADMIN ACCOUNT CREATION [/]", justify="center")
     console.print("━" * 40 + "\n", style="bright_blue")
-=======
-    print("======== Register=========")
-    name = input("Enter names:").strip()
-    email = input("Enter email:").strip()
->>>>>>> 5cd078a1a60f9aab99cbebc43a7946c25c384c8f
 
     # 1. Get Admin Details using Rich Prompt
-    name = Prompt.ask("[bold white]Full Name[/]").strip()
+    name = Prompt.ask("[bold white]Username[/]").strip()
     email = Prompt.ask("[bold white]Admin Email[/]").strip()
 
     # 2. Duplicate Check
@@ -154,8 +149,8 @@ def forget_password():
     all_admins = load_all_admins()
     target_admin = None
 
-    # Visual search feedback
-    with console.status("[bold blue]Searching encrypted database...", spinner="search"):
+    # UPDATED: Changed spinner="search" to spinner="dots"
+    with console.status("[bold blue]Searching encrypted database...", spinner="dots"):
         time.sleep(1)
         for admin in all_admins:
             if admin.get_email() == email:
@@ -172,11 +167,10 @@ def forget_password():
         ))
         return
 
-    # 3. User Found - Proceed to Reset
+    # 3. User Found
     console.print(f"[bold green]✔ Identity Verified:[/] Account linked to [bold cyan]{target_admin.name}[/]\n")
 
     while True:
-        # Prompt.ask(password=True) handles the masking (dots) for you!
         new_password = Prompt.ask("[bold white]Enter New Password[/]", password=True).strip()
         confirm_password = Prompt.ask("[bold white]Confirm New Password[/]", password=True).strip()
         
@@ -184,12 +178,12 @@ def forget_password():
             console.print("[bold red]❌ Passwords do not match. Please try again.[/]")
             continue
 
-        # Styled validation (using your existing function)
         if password_strength_validation(new_password):
             break
 
-    # 4. Finalizing and Saving
-    with console.status("[bold yellow]Updating security records...", spinner="aesthetic"):
+    # 4. Finalizing
+    # UPDATED: Changed spinner="aesthetic" to spinner="dots"
+    with console.status("[bold yellow]Updating security records...", spinner="dots"):
         target_admin.set_password(new_password)
         overwrite_admin_file(all_admins)
         time.sleep(1.5)
@@ -435,10 +429,9 @@ def view_admins():
         console.print(Panel("[bold red]No administrators found in the database.[/]", border_style="red"))
         return
 
-    # 2. Create the Admin Table
+    # 2. Create the Admin Table (SUBTITLE REMOVED TO PREVENT TypeError)
     table = Table(
         title="[bold reverse #6272a4]  ADMINISTRATOR DIRECTORY  [/]",
-        subtitle=f"[dim]Total Records: {len(admins)}[/]",
         header_style="bold yellow",
         border_style="bright_blue",
         show_lines=True
@@ -452,7 +445,7 @@ def view_admins():
 
     # 4. Add Rows
     for i, admin in enumerate(admins, start=1):
-        # We can add a "tag" to make it look more official
+        # Determine tag
         access_tag = "[bold green]System Admin[/]" if i == 1 else "[white]Staff[/]"
         
         table.add_row(
@@ -462,11 +455,13 @@ def view_admins():
             access_tag
         )
 
-    # 5. Display with a loading status for "System Look"
-    with console.status("[bold blue]Fetching directory...", spinner="point"):
-        time.sleep(1) # Brief pause for effect
+    # 5. Display (Using the safe 'dots' spinner)
+    with console.status("[bold blue]Fetching directory...", spinner="dots"):
+        time.sleep(1) 
         console.print("\n")
         console.print(table)
+        # Manually print the "subtitle" info here
+        console.print(Align.center(f"[dim]Total Records: {len(admins)}[/]"))
         console.print("\n")
 
 def view_tickets():
@@ -476,7 +471,7 @@ def view_tickets():
         console.print(Panel("[bold red]No events found in the database.[/]", border_style="red"))
         return
 
-    # 1. Create a Table to organize the data
+    # 1. Create a Table (No subtitle argument here to avoid crashes)
     table = Table(
         title="[bold reverse #6272a4]  TICKET SALES OVERVIEW  [/]",
         header_style="bold cyan",
@@ -491,22 +486,17 @@ def view_tickets():
     table.add_column("Remaining", justify="right", style="yellow")
     table.add_column("Status", justify="center")
 
-    # 3. Populate Rows with Progress Bars
+    # 3. Populate Rows
     for event in events:
         total = int(event.get("seat_total", 0))
         remaining = int(event.get("seats_input", 0))
         sold = total - remaining
-        
-        # Calculate percentage for the progress bar
         percentage = (sold / total) if total > 0 else 0
         
-        # Create a mini progress bar string
-        # [Filled Bars][Empty Bars]
         bar_width = 10
         filled = int(percentage * bar_width)
         bar = f"[green]{'━' * filled}[/][white]{'━' * (bar_width - filled)}[/]"
         
-        # Logic for Status Tag
         if remaining == 0:
             status = "[bold red]SOLD OUT[/]"
         elif percentage > 0.8:
@@ -522,16 +512,61 @@ def view_tickets():
             status
         )
 
-    # 4. Display
-    with console.status("[bold blue]Generating sales report...", spinner="chart"):
+    # 4. Display (Using the standard 'dots' spinner)
+    with console.status("[bold blue]Generating sales report...", spinner="dots"):
         time.sleep(1)
-        console.print("\n", table, "\n")
+        console.print("\n", table)
+        # Manually print the subtitle to be safe
+        console.print(Align.center("[dim]Live ticket sales and availability data[/]\n"))
+
+def admin_health_check():
+    # 1. Calculate Actual Revenue (Re-using your existing logic)
+    bookings = load_all_bookings()
+    events = load_all_events()
+    price_map = {e["id"]: float(e["price"]) for e in events}
+    
+    total_rev = 0
+    for b in bookings:
+        event_id = b["event_id"]
+        if event_id in price_map:
+            total_rev += int(b["quantity"]) * price_map[event_id]
+
+    # 2. Get Top Performer
+    sales_count = {}
+    for b in bookings:
+        e_id = b["event_id"]
+        sales_count[e_id] = sales_count.get(e_id, 0) + int(b["quantity"])
+    
+    # Sort events by sales to find the top one
+    sorted_events = sorted(events, key=lambda e: sales_count.get(e["id"], 0), reverse=True)
+    top_event_title = sorted_events[0]["title"] if sorted_events else "N/A"
+
+    # 3. Critical Seats (Events with less than 5 seats left)
+    low_seats_count = len([e for e in events if int(e['seats_input']) < 5])
+
+    # 4. Create the "Health" Table
+    health_table = Table(box=None, show_header=False)
+    
+    # Adding the rows with the variables we just calculated
+    health_table.add_row("💰 [bold white]Total Revenue:[/]", f"[green]${total_rev:,.2f}[/]")
+    health_table.add_row("🔥 [bold white]Top Seller:[/]", f"[cyan]{top_event_title}[/]")
+    health_table.add_row("⚠️  [bold white]Critical Seats:[/]", f"[red]{low_seats_count} Events almost sold out[/]")
+
+    console.print(Panel(
+        health_table, 
+        title="[bold blue]SYSTEM HEALTH AT A GLANCE[/]", 
+        border_style="blue",
+        expand=False
+    ))
+    console.input("\n[dim]Press Enter to return...[/]")
 
 def admin_dashboard(logged_in_admin):
     while True:
         # 1. Refresh Screen
         os.system('cls' if os.name == 'nt' else 'clear')
-        
+
+        admin_health_check()
+
         # 2. Top Status Bar
         status_text = Text.assemble(
             (" ADMIN SESSION ACTIVE ", "bold white on blue"),
@@ -561,12 +596,14 @@ def admin_dashboard(logged_in_admin):
         ticket_data.append("Cancel Ticket\n")
         ticket_data.append(" [7] ", style="bold cyan")
         ticket_data.append("Admin Accounts\n")
+        ticket_data.append(" [8] ", style="bold green")
+        ticket_data.append("Analysis Event\n")
 
         # Category C: Session
         session_mgmt = Text()
-        session_mgmt.append("\n [8] ", style="bold white")
+        session_mgmt.append("\n [9] ", style="bold white")
         session_mgmt.append("Logout\n")
-        session_mgmt.append(" [9] ", style="bold bright_red")
+        session_mgmt.append(" [10] ", style="bold bright_red")
         session_mgmt.append("Shutdown System\n")
 
         # 4. Build Panels for a "Dashboard" Look
@@ -605,10 +642,13 @@ def admin_dashboard(logged_in_admin):
             view_admins()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "8":
+            
+            console.input("\n[dim]Press Enter to return...[/]")
+        elif option == "9":
             console.print("\n[bold blue]Ending session... Goodbye![/]")
             time.sleep(1)
             return  
-        elif option == "9":
+        elif option == "10":
             console.print("\n[bold reverse red] SYSTEM SHUTDOWN INITIATED [/]")
             time.sleep(1)
             exit()
