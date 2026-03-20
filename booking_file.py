@@ -11,34 +11,68 @@ from rich.columns import Columns
 from rich.text import Text
 from rich import inspect
 from rich.rule import Rule
+from datetime import datetime
 
+# def load_all_bookings():
+#     if not os.path.exists(BOOKING_FILE):
+#         return []
+
+#     bookings = []
+
+#     with open(BOOKING_FILE, "r") as f:
+#         for line in f:
+#             parts = line.strip().split(" | ")
+
+#             if len(parts) == 4:
+#                 booking_id, user_id, event_id, quantity = parts
+
+#                 bookings.append({
+#                     "id": booking_id,
+#                     "user_id": user_id,
+#                     "event_id": event_id,
+#                     "quantity": int(quantity)
+#                 })
+
+#     return bookings
 def load_all_bookings():
     if not os.path.exists(BOOKING_FILE):
         return []
 
     bookings = []
-
     with open(BOOKING_FILE, "r") as f:
-        for line in f:
+        # Check if the file is empty
+        lines = f.readlines()
+        if len(lines) <= 1: # Only header or empty
+            return []
+
+        # Start from the second line (index 1) to skip header
+        for line in lines[1:]: 
             parts = line.strip().split(" | ")
 
-            if len(parts) == 4:
-                booking_id, user_id, event_id, quantity = parts
-
+            if len(parts) >= 4:
                 bookings.append({
-                    "id": booking_id,
-                    "user_id": user_id,
-                    "event_id": event_id,
-                    "quantity": int(quantity)
+                    "id": parts[0],
+                    "user_id": parts[1],
+                    "event_id": parts[2],
+                    "quantity": int(parts[3]),
+                    "date_booked": parts[4] if len(parts) > 4 else "2026-03-20",
+                    "time_booked": parts[5] if len(parts) > 5 else "12:00:00"
                 })
-
     return bookings
 
+# def save_all_bookings(bookings):
+#     with open(BOOKING_FILE, "w") as f:
+#         for b in bookings:
+#             f.write(f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']}\n")
 def save_all_bookings(bookings):
     with open(BOOKING_FILE, "w") as f:
+        # 1. Write the Header first
+        f.write("Booking ID | User ID | Event ID | Quantity | Date Booked | Time Booked\n")
+        
+        # 2. Write the data
         for b in bookings:
-            f.write(f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']}\n")
-
+            line = f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']} | {b['date_booked']} | {b['time_booked']}\n"
+            f.write(line)
 
 def load_all_cancelled_bookings():
     if not os.path.exists(CANCELLED_FILE):
@@ -70,7 +104,6 @@ def save_all_cancelled_bookings(cancelled_tickets):
                 f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n"         
             )
 
-
 def generate_booking_id(bookings):
     if not bookings:
         return "B001"
@@ -79,8 +112,114 @@ def generate_booking_id(bookings):
     next_id = max(ids) + 1 if ids else 1
     return f"B{next_id:03d}"
 
-def create_booking(user_id, event_id, quantity):
+# def create_booking(user_id, event_id, quantity):
 
+#     events = load_all_events()
+#     bookings = load_all_bookings()
+#     tickets = load_all_tickets()
+
+#     target_event = next((e for e in events if e["id"] == event_id), None)
+
+#     if not target_event:
+#         print("Event not found.")
+#         return
+
+#     seats_available = int(target_event["seats_input"])
+
+#     if seats_available < quantity:
+#         print("Not enough seats.")
+#         return
+
+#     ticket_price = float(target_event["price"])
+#     total_price = ticket_price * quantity
+  
+#     console = Console()
+
+#     table = Table(title="Payment Table")
+
+#     table.add_column("Ticket Price", style="cyan")
+#     table.add_column("Quantity", justify="right", style="magenta")
+#     table.add_column("Total Price", justify="right", style="green")
+
+#     # 3. Add the Data (The Row)
+#     # Use f-strings to convert your variables into strings
+#     table.add_row(
+#         f"${ticket_price:.2f}", 
+#         str(quantity), 
+#         f"${total_price:.2f}"
+#     )
+
+#     console.print(table)
+
+#     payment = float(input("Enter payment amount: $"))
+
+#     if payment < total_price:
+#         print("Payment not enough.")
+#         return
+
+#     change = payment - total_price
+#     print(f"Payment successful. Change: ${change}")
+
+#     # create booking
+#     booking_id = generate_booking_id(bookings)
+
+#     bookings.append({
+#         "id": booking_id,
+#         "user_id": user_id,
+#         "event_id": event_id,
+#         "quantity": quantity
+#     })
+
+#     save_all_bookings(bookings)
+
+#     ticket_panels = []
+
+#     for i in range(quantity):
+#         ticket_id = generate_ticket_id(tickets)
+        
+#         new_ticket = {
+#             "ticket_id": ticket_id,
+#             "booking_id": booking_id,
+#             "user_id": user_id,
+#             "event_id": event_id
+#         }
+#         tickets.append(new_ticket)
+        
+#         # --- INDENT THESE LINES SO THEY RUN EVERY TIME THE LOOP RUNS ---
+#         ticket_content = Text.assemble(
+#             ("🎫 ", "yellow"), 
+#             (ticket_id, "bold white")
+#         )
+        
+#         ticket_panels.append(
+#             Panel(
+#                 ticket_content, 
+#                 border_style="bright_blue", 
+#                 expand=False, 
+#                 subtitle=f"[dim]Qty: {i+1}/{quantity}[/]"
+#             )
+#         )
+#         # ---------------------------------------------------------------
+
+#     # Header and Display (These stay outside the loop)
+#     console.print("\n" + "━" * 30, style="dim")
+#     console.print("[bold reverse #6272a4]  YOUR TICKETS  [/]", justify="left")
+#     console.print("━" * 30 + "\n", style="dim")
+
+#     console.print(Columns(ticket_panels, padding=(0, 1)))
+#     console.print(f"\n[bold green]✔[/] {quantity} tickets added.\n")
+
+#     save_all_tickets(tickets)
+
+#     # reduce seats
+#     target_event["seats_input"] = str(seats_available - quantity)
+#     overwrite_event_file(events)
+
+#     print("\nBooking completed successfully.")
+#     # Add this at the very bottom of your view functions
+#     console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
+
+def create_booking(user_id, event_id, quantity):
     events = load_all_events()
     bookings = load_all_bookings()
     tickets = load_all_tickets()
@@ -101,15 +240,11 @@ def create_booking(user_id, event_id, quantity):
     total_price = ticket_price * quantity
   
     console = Console()
-
     table = Table(title="Payment Table")
-
     table.add_column("Ticket Price", style="cyan")
     table.add_column("Quantity", justify="right", style="magenta")
     table.add_column("Total Price", justify="right", style="green")
 
-    # 3. Add the Data (The Row)
-    # Use f-strings to convert your variables into strings
     table.add_row(
         f"${ticket_price:.2f}", 
         str(quantity), 
@@ -117,7 +252,6 @@ def create_booking(user_id, event_id, quantity):
     )
 
     console.print(table)
-
     payment = float(input("Enter payment amount: $"))
 
     if payment < total_price:
@@ -127,48 +261,41 @@ def create_booking(user_id, event_id, quantity):
     change = payment - total_price
     print(f"Payment successful. Change: ${change}")
 
-    # create booking
+    # --- NEW: GENERATE TIMESTAMP ---
+    now = datetime.now()
+    date_booked = now.strftime("%Y-%m-%d") # Use this for your Daily/Weekly graphs
+    time_booked = now.strftime("%H:%M:%S") # Optional: Use this for detailed logs
+
     booking_id = generate_booking_id(bookings)
 
+    # Add the date and time to the booking record
     bookings.append({
         "id": booking_id,
         "user_id": user_id,
         "event_id": event_id,
-        "quantity": quantity
+        "quantity": quantity,
+        "date_booked": date_booked,  # Critical for your graphs
+        "time_booked": time_booked   # Extra detail for admin logs
     })
 
     save_all_bookings(bookings)
 
+    # ... (Rest of your ticket generation code) ...
     ticket_panels = []
-
     for i in range(quantity):
         ticket_id = generate_ticket_id(tickets)
-        
         new_ticket = {
             "ticket_id": ticket_id,
             "booking_id": booking_id,
             "user_id": user_id,
-            "event_id": event_id
+            "event_id": event_id,
+            "booked_at": f"{date_booked} {time_booked}" # Stamp the ticket too!
         }
         tickets.append(new_ticket)
         
-        # --- INDENT THESE LINES SO THEY RUN EVERY TIME THE LOOP RUNS ---
-        ticket_content = Text.assemble(
-            ("🎫 ", "yellow"), 
-            (ticket_id, "bold white")
-        )
-        
-        ticket_panels.append(
-            Panel(
-                ticket_content, 
-                border_style="bright_blue", 
-                expand=False, 
-                subtitle=f"[dim]Qty: {i+1}/{quantity}[/]"
-            )
-        )
-        # ---------------------------------------------------------------
+        ticket_content = Text.assemble(("🎫 ", "yellow"), (ticket_id, "bold white"))
+        ticket_panels.append(Panel(ticket_content, border_style="bright_blue", expand=False, subtitle=f"[dim]Qty: {i+1}/{quantity}[/]"))
 
-    # Header and Display (These stay outside the loop)
     console.print("\n" + "━" * 30, style="dim")
     console.print("[bold reverse #6272a4]  YOUR TICKETS  [/]", justify="left")
     console.print("━" * 30 + "\n", style="dim")
@@ -178,12 +305,10 @@ def create_booking(user_id, event_id, quantity):
 
     save_all_tickets(tickets)
 
-    # reduce seats
     target_event["seats_input"] = str(seats_available - quantity)
     overwrite_event_file(events)
 
     print("\nBooking completed successfully.")
-    # Add this at the very bottom of your view functions
     console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
 
 def get_tickets_by_event(event_id):

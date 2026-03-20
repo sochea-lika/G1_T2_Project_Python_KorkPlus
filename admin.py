@@ -110,7 +110,7 @@ def sign_in():
     # 3. Get Credentials
     # Using Prompt.ask for a more integrated feel
     email = Prompt.ask("[bold cyan]Institutional Email[/]").strip()
-    password = get_password_with_dots("Security Password").strip()
+    password = get_password_with_dots("Security Password: ").strip()
 
     # 4. Verification Logic
     admin = find_admin_by_email(email)
@@ -558,7 +558,6 @@ def admin_health_check():
         border_style="blue",
         expand=False
     ))
-    console.input("\n[dim]Press Enter to return...[/]")
 
 def admin_dashboard(logged_in_admin):
     while True:
@@ -642,16 +641,19 @@ def admin_dashboard(logged_in_admin):
             view_admins()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "8":
-            
+            from analyze import menu_analyze
+            menu_analyze()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "9":
             console.print("\n[bold blue]Ending session... Goodbye![/]")
             time.sleep(1)
             return  
         elif option == "10":
-            console.print("\n[bold reverse red] SYSTEM SHUTDOWN INITIATED [/]")
-            time.sleep(1)
-            exit()
+            confirm = Confirm.ask("[bold red]Are you sure you want to SHUT DOWN the entire system?[/]")
+            if confirm:
+                console.print("\n[bold reverse red] SYSTEM SHUTDOWN INITIATED [/]")
+                time.sleep(1)
+                exit()
         else:
             console.print(Align.center("[bold white on red] INVALID SELECTION [/]"))
             time.sleep(1)
