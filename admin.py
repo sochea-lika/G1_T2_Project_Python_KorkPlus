@@ -19,6 +19,7 @@ from rich.box import DOUBLE_EDGE
 from rich.columns import Columns
 from rich.spinner import SPINNERS
 from booking_file import load_all_bookings
+from datetime import datetime
 
 console = Console()
 
@@ -274,35 +275,56 @@ def add_event():
     ))
     time.sleep(2)
 
+from datetime import datetime
+
 def view_events():
     events = load_all_events()
+    # Get current date (ignoring time for a fair comparison)
+    today = datetime.now().date()
     
     if not events:
         console.print(Panel("[bold red]No events found in the database.[/]", border_style="red"))
         return
 
-    # 1. Create the Table (SUBTITLE REMOVED TO PREVENT CRASH)
     table = Table(
-        title="[bold reverse #6272a4]  AVAILABLE EVENTS  [/]",
+        title="[bold reverse #6272a4]  ADMIN EVENT ROSTER  [/]",
         header_style="bold cyan",
         border_style="bright_blue",
         show_lines=True 
     )
 
-    # 2. Add Columns
     table.add_column("#", justify="center", style="dim")
     table.add_column("ID", style="bold yellow")
     table.add_column("Title", style="white")
     table.add_column("Date", justify="center")
-    table.add_column("Location", style="italic")
+    table.add_column("Status", justify="center") # New Column
     table.add_column("Price", justify="right", style="green")
     table.add_column("Seats", justify="center")
 
-    # 3. Add Rows
     for i, event in enumerate(events, start=1):
+        # 1. Date Comparison Logic
+        event_date_str = event.get('date', "")
+        try:
+            # Assumes your date format is YYYY-MM-DD
+            event_date = datetime.strptime(event_date_str, "%Y-%m-%d").date()
+            
+            if event_date < today:
+                status = "[bold red]EXPIRED[/]"
+                date_display = f"[dim strike]{event_date_str}[/]"
+            elif event_date == today:
+                status = "[bold yellow]TODAY[/]"
+                date_display = f"[bold yellow]{event_date_str}[/]"
+            else:
+                status = "[bold green]UPCOMING[/]"
+                date_display = event_date_str
+        except ValueError:
+            # Handle cases where the date format in the .txt file is wrong
+            status = "[dim]INVALID DATE[/]"
+            date_display = event_date_str
+
+        # 2. Seat Display Logic
         remaining = int(event.get('seats_input', 0))
         total = int(event.get('seat_total', 0))
-        
         seat_style = "bold red" if remaining < 10 else "green"
         seat_display = f"[{seat_style}]{remaining}[/]/{total}"
 
@@ -310,17 +332,15 @@ def view_events():
             str(i),
             event['id'],
             event['title'],
-            event['date'],
-            event['location'],
+            date_display,
+            status,
             f"${event['price']}",
             seat_display
         )
 
-    # 4. Print the table and then the subtitle separately
     console.print("\n")
     console.print(table)
-    # This replaces the 'subtitle' argument you had earlier
-    console.print(Align.center("[dim]Showing all currently registered events[/]"))
+    console.print(Align.center("[dim]System date: " + str(today) + " | Comparing event validity...[/]"))
     console.print("\n")
 
 def edit_event():

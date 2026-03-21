@@ -247,7 +247,7 @@ def user_dashboard_menu(user_obj):
         # --- Logic Handling ---
         if choice == "1":
             view_events()
-            event_id = console.input("\n[bold cyan]Enter Event ID (e.g., E001): [/]").strip()
+            event_id = console.input("\n[bold cyan]Enter Event ID (e.g., E001): [/]").strip().upper()
             qty_str = console.input("[bold cyan]Enter quantity: [/]").strip()
             if qty_str.isdigit():
                 create_booking(user_obj.user_id, event_id, int(qty_str))
@@ -257,7 +257,7 @@ def user_dashboard_menu(user_obj):
 
         elif choice == "2":
             view_tickets(user_obj.user_id)
-            ticket_id = console.input("\n[bold red]Enter Ticket ID to cancel: [/]").strip()
+            ticket_id = console.input("\n[bold red]Enter Ticket ID to cancel: [/]").strip().upper()
             cancel_ticket(user_obj.user_id, ticket_id)
 
         elif choice == "3":

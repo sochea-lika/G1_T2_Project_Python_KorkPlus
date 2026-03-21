@@ -93,23 +93,46 @@ def create_booking(user_id, event_id, quantity):
     events = load_all_events()
     bookings = load_all_bookings()
     tickets = load_all_tickets()
+    console = Console()
 
     target_event = next((e for e in events if e["id"] == event_id), None)
 
     if not target_event:
-        print("Event not found.")
+        console.print(Panel("[bold red]❌ Event not found.[/]", border_style="red"))
+        console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
         return
 
+    # --- NEW: EXPIRATION CHECK ---
+    try:
+        today = datetime.now().date()
+        # Assumes format YYYY-MM-DD from your load_all_events()
+        event_date = datetime.strptime(target_event["date"], "%Y-%m-%d").date()
+
+        if event_date < today:
+            console.print(Panel(
+                f"[bold red]❌ BOOKING DENIED[/]\n\n"
+                f"The event '[bold white]{target_event['title']}[/]' occurred on [cyan]{target_event['date']}[/].\n"
+                "You cannot book tickets for past events.",
+                title="Expired Event",
+                border_style="red",
+                expand=False
+            ))
+            console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
+            return
+    except ValueError:
+        console.print("[yellow]⚠ Warning: Event date format is invalid. Proceeding with caution...[/]")
+
+    # --- EXISTING SEAT CHECK ---
     seats_available = int(target_event["seats_input"])
 
     if seats_available < quantity:
-        print("Not enough seats.")
+        console.print(Panel("[bold red]❌ Not enough seats available.[/]", border_style="red"))
+        console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
         return
 
     ticket_price = float(target_event["price"])
     total_price = ticket_price * quantity
   
-    console = Console()
     table = Table(title="Payment Table")
     table.add_column("Ticket Price", style="cyan")
     table.add_column("Quantity", justify="right", style="magenta")
