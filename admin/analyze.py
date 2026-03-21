@@ -116,53 +116,66 @@ def view_top_events():
     console.input("\n[bold cyan]Press Enter to return to Admin Dashboard...[/]")
 
 def view_sales_extremes():
+    # 1. Load Data (assuming these return lists of dictionaries)
     bookings = load_all_bookings()
-    events = load_all_events()
+    events = load_all_events() 
     
     if not events:
         console.print("[bold red]No events found.[/]")
         return
 
-    # 1. Map Sales Quantity
-    sales_map = {e["id"]: 0 for e in events}
-    for b in bookings:
-        e_id = b["event_id"]
-        if e_id in sales_map:
-            sales_map[e_id] += int(b["quantity"])
+    # 2. Map Sales - Use ['id'] because 'e' is a dictionary
+    sales_map = {str(e['id']).strip(): 0 for e in events}
     
-    # 2. Pair titles with sales and sort
-    # results = [('Title', qty), ...]
+    for b in bookings:
+        # Use .get() to avoid crashes if a key is missing
+        e_id = str(b.get("event_id", "")).strip()
+        if e_id in sales_map:
+            sales_map[e_id] += int(b.get("quantity", 0))
+    
+    # 3. Pair titles and DATES with sales
     results = []
     for e in events:
-        results.append((e["title"], sales_map[e["id"]]))
+        qty = sales_map.get(str(e['id']).strip(), 0)
+        # We pull the date directly from the dictionary we got from the txt file
+        results.append({
+            "title": e['title'],
+            "date": e['date'], 
+            "qty": qty
+        })
     
-    # Sort: Highest sales first
-    results.sort(key=lambda x: x[1], reverse=True)
+    # 4. Sort: Highest sales first
+    results.sort(key=lambda x: x['qty'], reverse=True)
 
-    # 3. Extract the two extremes
-    highest_name, highest_qty = results[0]
-    lowest_name, lowest_qty = results[-1]
+    # 5. Extract extremes
+    highest = results[0]
+    lowest = results[-1]
+    total_sales = sum(sales_map.values())
 
-    # 4. Create Styled Content
-    high_text = Text.assemble(
-        (f"{highest_name}\n", "bold green"),
-        (f"Sold: {highest_qty} tickets", "white")
-    )
-    
-    low_text = Text.assemble(
-        (f"{lowest_name}\n", "bold red"),
-        (f"Sold: {lowest_qty} tickets", "white")
-    )
-
-    # 5. Display side-by-side in "Stat Boxes"
+    # 6. Display
     console.print("\n")
-    console.print(Columns([
-        Panel(high_text, title="[bold green]🏆 BEST PERFORMANCE[/]", border_style="green", expand=True),
-        Panel(low_text, title="[bold red]📉 LOWEST PERFORMANCE[/]", border_style="red", expand=True)
-    ]))
+    if total_sales == 0:
+        console.print(Panel(Align.center("[yellow]No tickets sold yet.[/]")))
+    else:
+        # Creating styled text including the DATE from the txt file
+        high_text = Text.assemble(
+            (f"{highest['title']}\n", "bold green"),
+            (f"Date: {highest['date']}\n", "dim"),
+            (f"Sold: {highest['qty']} tickets", "white")
+        )
+        
+        low_text = Text.assemble(
+            (f"{lowest['title']}\n", "bold red"),
+            (f"Date: {lowest['date']}\n", "dim"),
+            (f"Sold: {lowest['qty']} tickets", "white")
+        )
+
+        console.print(Columns([
+            Panel(high_text, title="🏆 BEST", border_style="green", expand=True),
+            Panel(low_text, title="📉 LOWEST", border_style="red", expand=True)
+        ]))
     
-    # 6. Safety Pause
-    console.input("\n[dim]Press Enter to return to Dashboard...[/]")
+    console.input("\n[dim]Press Enter to return...[/]")
 
 def menu_analyze():
     while True:
@@ -358,7 +371,7 @@ def view_daily_comparison_graph():
 if __name__ == "__main__":
     # calculate_total_revenue()
     # view_top_events()
-    # view_sales_extremes()
+    view_sales_extremes()
     # view_sales_trend_graph()
     # view_daily_growth()
-    view_daily_comparison_graph()
+    # view_daily_comparison_graph()

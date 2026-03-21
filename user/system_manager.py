@@ -49,18 +49,19 @@ class SystemManager:
                 if len(lines) <= 1: return users
 
                 for line in lines[1:]:
-                    parts = line.strip().split(",")
+                    parts = line.strip().split(",") # Double check if you use , or |
                     if len(parts) == 4:
                         u_id, u_name, u_email, u_pass = parts
-                        # USE EMAIL AS THE KEY (it is unique)
-                        users[u_email] = {
+                        
+                        # FIX: Use u_name as the KEY instead of u_email
+                        users[u_name] = {
                             "id": u_id,
-                            "name": u_name,
+                            "email": u_email,
                             "password": u_pass
                         }
         except Exception as e:
             print(f"Error loading users: {e}")
-                
+            
         return users
     
     def append_user(self, user_data):
