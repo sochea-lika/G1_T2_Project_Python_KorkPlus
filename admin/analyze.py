@@ -1,6 +1,7 @@
-from booking_file import load_all_bookings
-from events import load_all_events
-
+from events.booking_file import load_all_bookings
+from events.events import load_all_events
+import matplotlib.pyplot as plt
+from datetime import datetime
 from rich.panel import Panel
 from rich.columns import Columns
 from rich.text import Text
@@ -171,7 +172,7 @@ def menu_analyze():
         console.print(Panel("[bold magenta]📊 BUSINESS INTELLIGENCE & ANALYTICS[/]", style="magenta"))
         
         # Show the Health Check at the top so they see total revenue immediately
-        from admin import admin_health_check
+        from admin.admin import admin_health_check
         admin_health_check() 
         
         console.print("\n[1] 📈 View Daily Sales Trend (Matplotlib Graph)")
@@ -189,50 +190,6 @@ def menu_analyze():
             calculate_total_revenue() # The detailed financial one
         elif choice == "0":
             break # Returns to the main admin_dashboard loop
-
-import matplotlib.pyplot as plt
-from datetime import datetime
-
-# def view_sales_trend_graph():
-#     bookings = load_all_bookings()
-    
-#     if not bookings:
-#         console.print("[bold red]No booking data available for graphing.[/]")
-#         return
-
-#     # 1. Aggregate Sales by Date
-#     # Expected format: {"2026-03-10": 5, "2026-03-11": 12, ...}
-#     daily_sales = {}
-#     for b in bookings:
-#         # If you don't have date_booked, this will default to 'Today' for demo
-#         date = b.get("date_booked", datetime.now().strftime("%Y-%m-%d"))
-#         qty = int(b.get("quantity", 0))
-#         daily_sales[date] = daily_sales.get(date, 0) + qty
-
-#     # 2. Sort dates chronologically for the X-axis
-#     sorted_dates = sorted(daily_sales.keys())
-#     sales_values = [daily_sales[d] for d in sorted_dates]
-
-#     # 3. Create the Plot\
-#     plt.clf()
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(sorted_dates, sales_values, marker='o', linestyle='-', color='#6272a4', linewidth=2)
-    
-#     # Styling the Graph
-#     plt.title('Daily Sales Velocity (Trend Analysis)', fontsize=14, fontweight='bold', color='#44475a')
-#     plt.xlabel('Date of Booking', fontsize=12)
-#     plt.ylabel('Tickets Sold', fontsize=12)
-#     plt.xticks(rotation=45) # Tilt dates so they don't overlap
-#     plt.grid(True, linestyle='--', alpha=0.6)
-#     plt.tight_layout()
-
-#     # 4. Show it!
-#     console.print("[bold green]📊 Generating Graph... Look for the popup window![/]")
-#     console.print("[dim]Note: The program will pause until you close the graph window.[/]")
-#     plt.show() # This blocks the code until the window is closed
-
-#     console.print("\n[bold cyan]Graph window closed.[/]")
-#     console.input("[dim]Press Enter to return to Analysis Menu...[/]")
 
 def view_sales_trend_graph():
     # 1. Load Data

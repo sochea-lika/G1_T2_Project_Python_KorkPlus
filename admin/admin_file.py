@@ -1,8 +1,8 @@
 # handles the admin class and all functions
 # Read write data to admin.txt
 import os
-from person import Person
-Admin_file = "admin.txt" # store admin account
+from main.person import Person
+Admin_file = "admin/admin.txt" # store admin account
 
 # admin class inherirs from Person class so admin need have username password and email
 class Admin(Person):

@@ -7,7 +7,7 @@ from datetime import datetime
 
 console = Console()
 
-Event_file = "event.txt"
+Event_file = "events/event.txt"
 
 def load_all_events():
     events = []

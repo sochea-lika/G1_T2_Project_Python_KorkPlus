@@ -1,6 +1,7 @@
 import os
 
-TICKET_FILE = "tickets.txt"
+TICKET_FILE = "events/tickets.txt"
+
 def save_all_tickets(tickets):
     with open(TICKET_FILE, "w") as f:
         # 1. Write the Header

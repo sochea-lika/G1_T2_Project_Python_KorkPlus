@@ -1,10 +1,10 @@
 
-from admin_file import Admin, load_all_admins, save_new_admin, overwrite_admin_file, find_admin_by_email
-from events import load_all_events, save_new_event, overwrite_event_file,is_valid_date
-from password import password_strength_validation
+from admin.admin_file import Admin, load_all_admins, save_new_admin, overwrite_admin_file, find_admin_by_email
+from events.events import load_all_events, save_new_event, overwrite_event_file,is_valid_date
+from main.password import password_strength_validation
 # from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
-from booking_file import load_all_cancelled_bookings
-from password_dot import get_password_with_dots
+from events.booking_file import load_all_cancelled_bookings
+from main.password_dot import get_password_with_dots
 import time
 from rich.console import Console
 from rich.panel import Panel
@@ -18,7 +18,7 @@ from rich.prompt import Confirm
 from rich.box import DOUBLE_EDGE
 from rich.columns import Columns
 from rich.spinner import SPINNERS
-from booking_file import load_all_bookings
+from events.booking_file import load_all_bookings
 from datetime import datetime
 
 console = Console()
@@ -275,8 +275,6 @@ def add_event():
     ))
     time.sleep(2)
 
-from datetime import datetime
-
 def view_events():
     events = load_all_events()
     # Get current date (ignoring time for a fair comparison)
@@ -351,61 +349,50 @@ def edit_event():
         console.print("[bold red]No events available to edit.[/]")
         return
 
-    # 1. Search for Event
-    event_id = Prompt.ask("[bold white]Enter Event ID to edit[/] [dim](e.g., E001)[/]").strip()
-
+    # 1. Search
+    event_id = Prompt.ask("[bold white]Enter Event ID to edit[/]").strip().upper()
     target_event = next((e for e in events if e["id"] == event_id), None)
 
     if not target_event:
-        console.print(Panel(f"[bold red]✘ Error:[/] Event [italic]{event_id}[/] not found.", border_style="red", expand=False))
+        console.print(Panel(f"[bold red]✘ Error:[/] Event {event_id} not found.", border_style="red"))
         return
 
-    # 2. Display Current Info in a mini-table
-    console.print("\n[bold cyan]Current Event Details:[/]")
-    info_table = Table(box=None, padding=(0, 2), show_header=False)
-    info_table.add_row("[dim]Title:[/]", target_event['title'])
-    info_table.add_row("[dim]Date:[/]", target_event['date'])
-    info_table.add_row("[dim]Location:[/]", target_event['location'])
-    console.print(info_table)
+    # 2. Input Logic
+    # Note: Prompt.ask returns the same type as the 'default' value.
+    # To be safe, we wrap them in str() if we want to use .strip()
     
-    console.print("\n[italic dim]Press Enter to keep the current value.[/]\n")
-
-    # 3. Dynamic Updating using Prompt placeholders
-    new_title = Prompt.ask(f"Title", default=target_event['title']).strip()
+    new_title = str(Prompt.ask("Title", default=target_event['title'])).strip()
     
     while True:
-        new_date = Prompt.ask(f"Date", default=target_event['date']).strip()
-        # Validation check: if it's the same as before, skip validation
+        new_date = str(Prompt.ask("Date", default=target_event['date'])).strip()
         if new_date == target_event['date'] or is_valid_date(new_date):
             break
+        console.print("[bold red]❌ Invalid Date format. Please use YYYY-MM-DD.[/]")
 
-    new_location = Prompt.ask(f"Location", default=target_event['location']).strip()
-    new_description = Prompt.ask(f"Description", default=target_event['description']).strip()
-    new_price = Prompt.ask(f"Price", default=target_event['price']).strip()
-    new_seat = Prompt.ask(f"Total Seats", default=target_event['seat_total']).strip()
+    new_location = str(Prompt.ask("Location", default=target_event['location'])).strip()
+    new_description = str(Prompt.ask("Description", default=target_event['description'])).strip()
+    
+    # For Price and Seats, we ensure they stay as strings for the file-saver logic
+    new_price = str(Prompt.ask("Price", default=target_event['price'])).strip()
+    new_seat = str(Prompt.ask("Total Seats", default=target_event['seat_total'])).strip()
 
-    # 4. Assigning values
-    target_event["title"] = new_title
-    target_event["date"] = new_date
-    target_event["location"] = new_location
-    target_event["description"] = new_description
-    target_event["price"] = new_price
-    target_event["seat_total"] = new_seat
+    # 3. Update
+    target_event.update({
+        "title": new_title,
+        "date": new_date,
+        "location": new_location,
+        "description": new_description,
+        "price": new_price,
+        "seat_total": new_seat,
+        "seats_input": new_seat # Optional: Reset remaining seats if total changes
+    })
 
-    # 5. Save and Animation (SPINNER CHANGED TO 'dots')
-    # Use 'dots' or 'aesthetic' for maximum compatibility
+    # 4. Save
     with console.status("[bold yellow]Overwriting records...", spinner="dots"):
         overwrite_event_file(events)
         time.sleep(1.2)
 
-    success_msg = Text.assemble(
-        ("✔ UPDATE COMPLETE\n", "bold green"),
-        ("Event ", "white"), (f"{event_id}", "bold cyan"),
-        (" has been successfully modified.", "white")
-    )
-    
-    console.print("\n", Panel(success_msg, border_style="green", expand=False))
-    time.sleep(1.5)
+    console.print(Panel("[bold green]✔ UPDATE COMPLETE[/]", border_style="green"))
 
 def delete_event():
     console.print("\n[bold red]🗑 DELETE EVENT MODULE[/]")
@@ -752,7 +739,7 @@ def admin_dashboard(logged_in_admin):
             view_admins()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "8":
-            from analyze import menu_analyze
+            from admin.analyze import menu_analyze
             menu_analyze()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "9":
@@ -839,8 +826,4 @@ def main():
             console.print(Align.center("[bold white on red] INVALID SELECTION [/]"))
             time.sleep(1.2)
 
-
-# Run the program
-if __name__ == "__main__":
-    main()
 

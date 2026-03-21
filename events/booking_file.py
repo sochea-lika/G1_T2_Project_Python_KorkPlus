@@ -1,9 +1,9 @@
 
 import os
-from events import load_all_events, overwrite_event_file
-from tickets import save_all_tickets,load_all_tickets,generate_ticket_id
-BOOKING_FILE = "bookings.txt"
-CANCELLED_FILE = "cancelled_bookings.txt"
+from events.events import load_all_events, overwrite_event_file
+from events.tickets import save_all_tickets,load_all_tickets,generate_ticket_id
+BOOKING_FILE = "events/bookings.txt"
+CANCELLED_FILE = "events/cancelled_bookings.txt"
 from rich.console import Console, Group
 from rich.table import Table
 from rich.panel import Panel

@@ -1,11 +1,11 @@
 
-from person import Person
-from system_manager import SystemManager
-from booking_file import cancel_ticket, create_booking, view_booking,view_cancelled_bookings,view_tickets
-from admin import view_events
-from events import load_all_events
-from password import password_strength_validation
-from password_dot import get_password_with_dots
+from main.person import Person
+from user.system_manager import SystemManager
+from events.booking_file import cancel_ticket, create_booking, view_booking,view_cancelled_bookings,view_tickets
+from admin.admin import view_events
+from events.events import load_all_events
+from main.password import password_strength_validation
+from main.password_dot import get_password_with_dots
 import os
 import time
 from rich.console import Console
@@ -68,7 +68,7 @@ def register(system):
         time.sleep(0.1)
 
     user_obj = User(user_id, username, email, password)
-    system.save_user(user_obj)
+    system.save_all_users(user_obj)
 
     # Success Summary Panel
     success_text = Text.assemble(

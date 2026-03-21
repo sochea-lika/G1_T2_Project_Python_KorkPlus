@@ -1,5 +1,5 @@
-from admin import main as admin_menu  # your existing admin panel
-from user import menu as user_menu   # your user registration/login + dashboard
+from admin.admin import main as admin_menu  # your existing admin panel
+from user.user import menu as user_menu   # your user registration/login + dashboard
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
