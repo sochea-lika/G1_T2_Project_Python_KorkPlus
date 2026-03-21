@@ -1,4 +1,4 @@
 E001|CADT_concert|2026-06-12|CADT|For happy new year|2|59|100
 E002|Gekleang Concert|2026-04-06|Koh Pich|For all Gekleang's girlfriends|10|82|100
-E003|Bookfair|2026-04-02|Koh Norea|Thousand of books are waiting for you!|2|94|100
-E004|AI & WorkShop|2026-3-25|Koh Pich|Discover more about AI|5|118|120
+E003|Bookfair|2026-04-02|Koh Norea|Thousand of books are waiting for you!|2|95|100
+E004|AI & WorkShop|2026-3-25|Koh Pich|Discover more about AI|5|120|120

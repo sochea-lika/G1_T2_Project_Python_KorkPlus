@@ -1,10 +1,9 @@
-import uuid 
+
 from admin_file import Admin, load_all_admins, save_new_admin, overwrite_admin_file, find_admin_by_email
 from events import load_all_events, save_new_event, overwrite_event_file,is_valid_date
 from password import password_strength_validation
 # from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
-from booking_file import get_tickets_by_event, get_total_seats_sold
-from tickets import load_all_tickets
+from booking_file import load_all_cancelled_bookings
 from password_dot import get_password_with_dots
 import time
 from rich.console import Console
@@ -96,49 +95,62 @@ def register():
     time.sleep(2)
 
 def sign_in():
-    # 1. Clear the screen for a clean terminal look
-    os.system('cls' if os.name == 'nt' else 'clear')
+    attempt = 3
 
-    # 2. Create a "Secure Terminal" Header
-    header = Panel(
-        Align.center("[bold yellow]ADMINISTRATOR ACCESS CONTROL[/]"),
-        style="on #282a36", # Dark background
-        border_style="bright_blue"
-    )
-    console.print("\n", header)
+    while attempt > 0:
+        # 1. Clear the screen FIRST so each attempt starts fresh
+        os.system('cls' if os.name == 'nt' else 'clear')
 
-    # 3. Get Credentials
-    # Using Prompt.ask for a more integrated feel
-    email = Prompt.ask("[bold cyan]Institutional Email[/]").strip()
-    password = get_password_with_dots("Security Password: ").strip()
-
-    # 4. Verification Logic
-    admin = find_admin_by_email(email)
-    
-    # Simulate a "Security Handshake"
-    with console.status("[bold blue]Verifying encrypted credentials...", spinner="bouncingBar"):
-        time.sleep(1.2)
-
-    if admin and admin.check_password(password):
-        # Success Layout
-        success_text = Text.assemble(
-            ("✔ ACCESS GRANTED\n", "bold green"),
-            ("Welcome, Administrator ", "white"),
-            (f"{admin.name}", "bold cyan")
+        # 2. Create the Header
+        # Fixed: Moved the attempts into the subtitle argument correctly
+        header = Panel(
+            Align.center("[bold yellow]ADMINISTRATOR ACCESS CONTROL[/]"),
+            style="on #282a36",
+            border_style="bright_blue",
+            subtitle=f"[dim white]Attempt: {attempt}/3[/]"
         )
-        console.print("\n", Align.center(Panel(success_text, border_style="green", expand=False)))
-        time.sleep(1.5)
-        return admin
-    else:
-        # Failure Layout
-        error_text = Text.assemble(
-            ("✘ ACCESS DENIED\n", "bold red"),
-            ("Invalid authentication parameters. Your attempt has been logged.", "dim white")
-        )
-        console.print("\n", Align.center(Panel(error_text, border_style="red", expand=False)))
-        time.sleep(2)
-        return None
-    
+        console.print("\n", header)
+
+        # 3. Get Credentials
+        email = Prompt.ask("[bold cyan]Institutional Email[/]").strip()
+        password = get_password_with_dots("Security Password: ").strip()
+
+        # 4. Verification Logic
+        admin = find_admin_by_email(email)
+        
+        with console.status("[bold blue]Verifying encrypted credentials...", spinner="bouncingBar"):
+            time.sleep(1.2)
+
+        if admin and admin.check_password(password):
+            success_text = Text.assemble(
+                ("✔ ACCESS GRANTED\n\n", "bold green"),
+                ("Welcome, Administrator ", "white"),
+                (f"{admin.name}", "bold cyan")
+            )
+            console.print("\n", Align.center(Panel(success_text, border_style="green", expand=False)))
+            time.sleep(1.5)
+            return admin
+        else:
+            attempt -= 1
+            if attempt > 0:
+                error_msg = Text.assemble(
+                    ("❌ Invalid credentials. ", "bold red"),
+                    (f"\n{attempt} attempts remaining.", "italic white")
+                )
+                console.print("\n", Align.center(Panel(error_msg, border_style="red", expand=False)))
+                # IMPORTANT: Pause so the user can read the error before the screen clears
+                time.sleep(2) 
+            else:
+                console.print("\n", Align.center(Panel(
+                    "[bold white on red] ACCESS BLOCKED [/]\n\nToo many failed attempts.", 
+                    title="System Alert", 
+                    border_style="bold red",
+                    expand=False
+                )))
+                time.sleep(3)
+
+    return None
+
 def forget_password():
     console.print("\n[bold yellow]🔐 ADMIN PASSWORD RECOVERY[/]")
     console.print("[dim]Identify your account to continue[/]\n")
@@ -519,44 +531,122 @@ def view_tickets():
         # Manually print the subtitle to be safe
         console.print(Align.center("[dim]Live ticket sales and availability data[/]\n"))
 
+def view_cancellation_analysis():
+    events = load_all_events()
+    # Assuming you have a function to load the 'history' of cancellations
+    all_bookings = load_all_bookings() 
+    cancelled_bookings = load_all_cancelled_bookings() # You'll need this function
+    
+    if not events:
+        console.print(Panel("[bold red]No event data available for analysis.[/]", border_style="red"))
+        return
+
+    # 1. Create the Table
+    table = Table(
+        title="[bold reverse #e74c3c]  CANCELLATION & REFUND ANALYTICS  [/]",
+        header_style="bold magenta",
+        border_style="red",
+        expand=True
+    )
+
+    # 2. Define Columns
+    table.add_column("Event Title", style="white", width=25)
+    table.add_column("Loss Progress (Qty)", width=30)
+    table.add_column("Active", justify="right", style="green")
+    table.add_column("Cancelled", justify="right", style="bold red")
+    table.add_column("Revenue Loss", justify="right", style="yellow")
+
+    # 3. Populate Rows
+    for event in events:
+        e_id = event['id']
+        price = float(event.get('price', 0))
+        
+        # Count Active vs Cancelled for this specific event
+        active_qty = sum(int(b['quantity']) for b in all_bookings if b['event_id'] == e_id)
+        cancel_qty = sum(int(b['quantity']) for b in cancelled_bookings if b['event_id'] == e_id)
+        
+        total_attempts = active_qty + cancel_qty
+        loss_percentage = (cancel_qty / total_attempts) if total_attempts > 0 else 0
+        total_loss_val = cancel_qty * price
+        
+        # Build the Visual "Loss Bar"
+        bar_width = 10
+        filled = int(loss_percentage * bar_width)
+        # Red represents the 'Lost' portion
+        bar = f"[red]{'━' * filled}[/][green]{'━' * (bar_width - filled)}[/]"
+        
+        table.add_row(
+            f"{event['title']}\n[dim]{e_id}[/]",
+            f"{bar} [dim]{int(loss_percentage*100)}% Loss[/]",
+            str(active_qty),
+            str(cancel_qty),
+            f"[bold red]-${total_loss_val:,.2f}[/]"
+        )
+
+    # 4. Display with a "Security/Audit" Feel
+    with console.status("[bold red]Auditing cancellation logs...", spinner="dots"):
+        time.sleep(1.2)
+        console.print("\n", table)
+        
+        # Calculated Totals for a footer
+        total_lost_revenue = sum(int(b['quantity']) * float(next((e['price'] for e in events if e['id'] == b['event_id']), 0)) for b in cancelled_bookings)
+        
+        summary_panel = Panel(
+            Align.center(f"[bold white]Total Revenue Lost to Cancellations:[/] [bold red]${total_lost_revenue:,.2f}[/]"),
+            border_style="red",
+            padding=(0, 2)
+        )
+        console.print(summary_panel)
+        console.print(Align.center("[dim]Data based on processed refund requests[/]\n"))
+
 def admin_health_check():
-    # 1. Calculate Actual Revenue (Re-using your existing logic)
+    # 1. Logic (Same as before)
     bookings = load_all_bookings()
     events = load_all_events()
     price_map = {e["id"]: float(e["price"]) for e in events}
     
     total_rev = 0
-    for b in bookings:
-        event_id = b["event_id"]
-        if event_id in price_map:
-            total_rev += int(b["quantity"]) * price_map[event_id]
-
-    # 2. Get Top Performer
     sales_count = {}
     for b in bookings:
         e_id = b["event_id"]
-        sales_count[e_id] = sales_count.get(e_id, 0) + int(b["quantity"])
+        qty = int(b.get("quantity", 0))
+        total_rev += qty * price_map.get(e_id, 0)
+        sales_count[e_id] = sales_count.get(e_id, 0) + qty
     
-    # Sort events by sales to find the top one
     sorted_events = sorted(events, key=lambda e: sales_count.get(e["id"], 0), reverse=True)
     top_event_title = sorted_events[0]["title"] if sorted_events else "N/A"
-
-    # 3. Critical Seats (Events with less than 5 seats left)
     low_seats_count = len([e for e in events if int(e['seats_input']) < 5])
 
-    # 4. Create the "Health" Table
-    health_table = Table(box=None, show_header=False)
+    # 2. CREATE THE "SATISFYING" TABLE
+    # Added padding inside the table and set column ratios
+    health_table = Table(
+        show_header=False, 
+        box=None, 
+        padding=(0, 2), 
+        collapse_padding=True
+    )
     
-    # Adding the rows with the variables we just calculated
-    health_table.add_row("💰 [bold white]Total Revenue:[/]", f"[green]${total_rev:,.2f}[/]")
-    health_table.add_row("🔥 [bold white]Top Seller:[/]", f"[cyan]{top_event_title}[/]")
-    health_table.add_row("⚠️  [bold white]Critical Seats:[/]", f"[red]{low_seats_count} Events almost sold out[/]")
+    health_table.add_column("Icon", width=3)
+    health_table.add_column("Label", width=20, style="bold white")
+    health_table.add_column("Value", width=30, justify="right")
 
-    console.print(Panel(
-        health_table, 
-        title="[bold blue]SYSTEM HEALTH AT A GLANCE[/]", 
-        border_style="blue",
-        expand=False
+    # 3. ADDING ROWS
+    health_table.add_row("💰", "Total Revenue", f"[bold green]${total_rev:,.2f}[/]")
+    health_table.add_row("🔥", "Top Seller", f"[bold cyan]{top_event_title}[/]")
+    health_table.add_row("⚠️ ", "Critical Seats", f"[bold red]{low_seats_count} Events low stock[/]")
+
+    # 4. THE PANEL (The Box)
+    # Added 'padding' for breathing room and 'width' for a solid look
+    console.print("\n") # Space above
+    console.print(Align.center(
+        Panel(
+            health_table, 
+            title="[bold bright_blue]📊 SYSTEM HEALTH SUMMARY[/]", 
+            subtitle="[dim]Real-time Data[/]",
+            border_style="bright_blue",
+            padding=(1, 2), # Internal spacing (top/bottom, left/right)
+            expand=False    # Box will stay wide enough for our columns
+        )
     ))
 
 def admin_dashboard(logged_in_admin):
@@ -576,7 +666,7 @@ def admin_dashboard(logged_in_admin):
         console.print("━" * console.width, style="blue")
 
         # 3. Create Categorized Menu Content
-        # Category A: Event Management
+        # 1. Category A: Event Management
         event_mgmt = Text()
         event_mgmt.append("\n [1] ", style="bold yellow")
         event_mgmt.append("Add New Event\n")
@@ -585,9 +675,9 @@ def admin_dashboard(logged_in_admin):
         event_mgmt.append(" [3] ", style="bold yellow")
         event_mgmt.append("Browse Events\n")
         event_mgmt.append(" [4] ", style="bold red")
-        event_mgmt.append("Delete Event\n")
+        event_mgmt.append("Delete Event") # Removed \n for better fit
 
-        # Category B: Ticketing & Data
+        # 2. Category B: Ticketing & Data
         ticket_data = Text()
         ticket_data.append("\n [5] ", style="bold cyan")
         ticket_data.append("Sales Overview\n")
@@ -596,24 +686,26 @@ def admin_dashboard(logged_in_admin):
         ticket_data.append(" [7] ", style="bold cyan")
         ticket_data.append("Admin Accounts\n")
         ticket_data.append(" [8] ", style="bold green")
-        ticket_data.append("Analysis Event\n")
+        ticket_data.append("Event Analysis")
 
-        # Category C: Session
+        # 3. Category C: Session
         session_mgmt = Text()
         session_mgmt.append("\n [9] ", style="bold white")
         session_mgmt.append("Logout\n")
         session_mgmt.append(" [10] ", style="bold bright_red")
-        session_mgmt.append("Shutdown System\n")
+        session_mgmt.append("Shutdown System")
 
-        # 4. Build Panels for a "Dashboard" Look
-        # Using a width that allows them to sit side-by-side
-        p1 = Panel(event_mgmt, title="[bold yellow]EVENT MGMT[/]", border_style="yellow", width=30)
-        p2 = Panel(ticket_data, title="[bold cyan]TICKETS & USERS[/]", border_style="cyan", width=30)
-        p3 = Panel(session_mgmt, title="[bold white]SESSION[/]", border_style="white", width=30)
+        # 4. Build Panels with FIXED Width and FIXED Height
+        # Height=8 is enough to fit 4 lines plus the padding comfortably
+        p1 = Panel(event_mgmt, title="[bold yellow]EVENT MGMT[/]", border_style="yellow", width=32, height=9)
+        p2 = Panel(ticket_data, title="[bold cyan]TICKETS & DATA[/]", border_style="cyan", width=32, height=9)
+        p3 = Panel(session_mgmt, title="[bold white]SESSION[/]", border_style="white", width=32, height=9)
 
-        # 5. Display the Grid
+        # 5. Display the Grid (Centering both the Columns)
         console.print("\n")
-        console.print(Align.center(Columns([p1, p2, p3])))
+        # Columns align their content to the top by default
+        dashboard = Columns([p1, p2, p3], align="center", expand=False)
+        console.print(Align.center(dashboard))
         console.print("\n" + "━" * console.width, style="blue")
 
         # 6. Styled Input
@@ -634,9 +726,8 @@ def admin_dashboard(logged_in_admin):
             view_tickets()
             console.input("\n[dim]Press Enter to return...[/]")
         elif option == "6":
-            # cancel_ticket_action()
-            console.print("[yellow]Feature coming soon...[/]")
-            time.sleep(1)
+            view_cancellation_analysis()
+            console.input("\n[dim]Press Enter to return...[/]")
         elif option == "7":
             view_admins()
             console.input("\n[dim]Press Enter to return...[/]")
@@ -707,6 +798,9 @@ def main():
         # --- Logic Handling ---
         if option == "1":
             register()
+            if logged_in_admin:
+                # This opens your categorized admin_dashboard
+                admin_dashboard(logged_in_admin)
 
         elif option == "2":
             logged_in_admin = sign_in()
@@ -729,3 +823,4 @@ def main():
 # Run the program
 if __name__ == "__main__":
     main()
+

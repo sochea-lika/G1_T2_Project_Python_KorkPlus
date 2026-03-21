@@ -1,6 +1,5 @@
 
 from person import Person
-# from event import Event
 from system_manager import SystemManager
 from booking_file import cancel_ticket, create_booking, view_booking,view_cancelled_bookings,view_tickets
 from admin import view_events
@@ -17,6 +16,7 @@ from rich.box import DOUBLE
 from rich.box import ROUNDED
 from rich.prompt import Prompt
 from rich.progress import track
+from rich.prompt import Confirm
 
 console = Console()
 
@@ -91,7 +91,7 @@ def login(system):
 
     while attempt > 0:
         # Create a header for the login attempt
-        login_header = Text.assemble(
+        login_header = Text.assemble( 
             ("\n🔒 SECURITY ACCESS ", "bold yellow"),
             (f"| Attempt: {attempt}/3", "dim white")
         )
@@ -138,46 +138,60 @@ def login(system):
 def forgot_password(system):
     users = system.load_users()
     
-    # Use Rich Prompt for a cleaner input look
-    username = Prompt.ask("\n[bold yellow]Enter your username to retrieve password[/]")
+    # 1. Identification
+    username = Prompt.ask("\n[bold yellow]Enter username for reset[/]").strip()
 
     if username not in users:
-        # Warning Panel for unregistered users
-        error_msg = Text.assemble(
-            ("⚠ ", "bold red"),
-            ("Access Denied: ", "bold white"),
-            (f"'{username}'", "italic cyan"),
-            (" is not in our system.", "white")
-        )
-        console.print(Panel(error_msg, border_style="red", expand=False))
-        time.sleep(2)
-    else:
-        # Simulate a "Security Check" animation
-        with console.status("[bold green]Verifying identity...", spinner="fingerprint"):
-            time.sleep(1.5)
-        
-        # Display the password in a "Secure" looking vault box
-        password = users[username]['password']
-        
-        success_content = Text.assemble(
-            ("User Authenticated!\n\n", "bold green"),
-            ("Your Password: ", "white"),
-            (f"{password}", "bold yellow underline")
-        )
+        console.print(Panel("[bold red]❌ User not found.[/]", border_style="red", expand=False))
+        return
 
-        console.print(Align.center(
-            Panel(
-                success_content,
-                title="[bold lock] SECURITY RECOVERY [/]",
-                border_style="bright_green",
-                padding=(1, 5),
-                expand=False
-            )
-        ))
-        
-        # Pause so the user can actually read/copy the password
-        console.input("\n[dim]Press Enter to return to main menu...[/]")
+    # 2. Verified State
+    console.print(f"[bold green]✔ Identity Verified:[/] Resetting password for [bold cyan]{username}[/]\n")
 
+    # 3. Use your custom "Dot" input
+    while True:
+        new_pw = get_password_with_dots("Enter New Password: ")
+        confirm_pw = get_password_with_dots("Confirm New Password: ")
+        
+        if new_pw == "":
+            console.print("[bold red]❌ Password cannot be empty![/]")
+            continue
+
+        if new_pw != confirm_pw:
+            console.print("[bold red]❌ Passwords do not match. Try again.[/]")
+            continue
+        break
+
+    # 4. Save Logic
+    with console.status("[bold yellow]Updating security records...", spinner="dots"):
+        # 1. Update the password in the dictionary
+        users[username]['password'] = new_pw
+        
+        # 2. Save the WHOLE dictionary back to the file
+        system.save_all_users(users) 
+        time.sleep(1.5)
+
+    console.print("\n", Align.center(Panel("[bold green]SUCCESS![/] Your password has been updated.", border_style="green", expand=False)))
+
+    # 7. Success Summary
+    success_msg = Text.assemble(
+        ("PASSWORD RESET SUCCESSFUL\n\n", "bold green"),
+        ("The credentials for ", "white"),
+        (f"{username}", "bold cyan"),
+        (" have been updated. You can now log in with your new password.", "white")
+    )
+
+    console.print("\n", Align.center(
+        Panel(
+            success_msg, 
+            title="🔐 SECURITY UPDATED", 
+            border_style="bright_green", 
+            expand=False,
+            padding=(1, 2)
+        )
+    ))
+    
+    console.input("\n[dim]Press Enter to return to main menu...[/]")
 # -------------------------------
 # User Dashboard
 # -------------------------------
@@ -210,6 +224,8 @@ def user_dashboard_menu(user_obj):
         menu_content.append("View Cancellation Log   ", style="bold yellow")
         menu_content.append(" [6] ", style="bold white")
         menu_content.append("Logout System\n", style="bold white")
+        menu_content.append(" [7] ", style="bold red")
+        menu_content.append("Shutdown System\n", style="bold red")
 
         # 4. Dashboard Panel
         dashboard_panel = Panel(
@@ -260,7 +276,12 @@ def user_dashboard_menu(user_obj):
             with console.status("[bold red]Logging out...", spinner="dots"):
                 time.sleep(1)
             break
-
+        elif choice == "7":
+            confirm = Confirm.ask("[bold red]Are you sure you want to SHUT DOWN the entire system?[/]")
+            if confirm:
+                console.print("\n[bold reverse red] SYSTEM SHUTDOWN INITIATED [/]")
+                time.sleep(1)
+                exit()
         else:
             console.print(Align.center("[bold white on red] INVALID CHOICE [/]"))
             time.sleep(1)
@@ -287,7 +308,7 @@ def menu():
         menu_content.append("Sign In\n", style="white")
         menu_content.append(" [3] ", style="bold yellow")
         menu_content.append("Forgot Password\n", style="white")
-        menu_content.append("\n [4] ", style="bold red")
+        menu_content.append(" [4] ", style="bold red")
         menu_content.append("Exit Program\n", style="white")
         menu_content.append("\n") # Padding
 
