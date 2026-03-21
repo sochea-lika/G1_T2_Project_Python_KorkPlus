@@ -8,34 +8,57 @@ from datetime import datetime
 console = Console()
 
 Event_file = "event.txt"
+
 def load_all_events():
     events = []
     if os.path.exists(Event_file):
-        with open(Event_file,"r") as file:
-            for line in file:
+        with open(Event_file, "r") as file:
+            lines = file.readlines()
+            
+            # Check if file has data beyond just the header
+            if len(lines) <= 1: 
+                return events
+
+            # Skip the first line (header) using slicing [1:]
+            for line in lines[1:]:
                 parts = line.strip().split("|")
+                # Ensure we have 8 parts
                 if len(parts) == 8:
-                    event ={
-                        "id" : parts[0],
-                        "title" : parts[1],
+                    event = {
+                        "id": parts[0],
+                        "title": parts[1],
                         "date": parts[2],
-                        "location":parts[3],
+                        "location": parts[3],
                         "description": parts[4],
                         "price": parts[5],
-                        "seats_input":int(parts[6]),
-                        "seat_total"  : int(parts[7]) 
+                        "seats_input": int(parts[6]),
+                        "seat_total": int(parts[7])
                     }
                     events.append(event)
     return events
 
 def save_new_event(event):
+    # If the file doesn't exist yet, we should create it and add the header
+    file_exists = os.path.exists(Event_file)
+    
     with open(Event_file, "a") as file:
-        file.write(f"{event['id']}|{event['title']}|{event['date']}|{event['location']}|{event['description']}|{event['price']}|{event['seats_input']}|{event['seat_total']}\n")
+        if not file_exists:
+            file.write("ID|Title|Date|Location|Description|Price|Seats_Left|Seats_Total\n")
+            
+        file.write(f"{event['id']}|{event['title']}|{event['date']}|{event['location']}|"
+                   f"{event['description']}|{event['price']}|{event['seats_input']}|"
+                   f"{event['seat_total']}\n")
 
 def overwrite_event_file(events):
-     with open(Event_file, "w") as file:
+    with open(Event_file, "w") as file:
+        # 1. Write the Header
+        file.write("ID|Title|Date|Location|Description|Price|Seats_Left|Seats_Total\n")
+        
+        # 2. Write all events
         for event in events:
-            file.write(f"{event['id']}|{event['title']}|{event['date']}|{event['location']}|{event['description']}|{event['price']}|{event['seats_input']}|{event['seat_total']}\n")
+            file.write(f"{event['id']}|{event['title']}|{event['date']}|{event['location']}|"
+                       f"{event['description']}|{event['price']}|{event['seats_input']}|"
+                       f"{event['seat_total']}\n")
             
 def is_valid_date(date_text):
     # Check if date matches YYYY-MM-DD format

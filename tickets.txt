@@ -1,3 +1,4 @@
+Ticket ID | Booking ID | User ID | Event ID
 T001 | B001 | U001 | E001
 T002 | B002 | U001 | E002
 T003 | B002 | U001 | E002

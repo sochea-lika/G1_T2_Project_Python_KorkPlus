@@ -6,42 +6,55 @@ Admin_file = "admin.txt" # store admin account
 
 # admin class inherirs from Person class so admin need have username password and email
 class Admin(Person):
-    def init(self,name,email,password):
-        super().init(name,email,password)
+    def __init__(self, name, email, password): # Fixed: should be __init__
+        super().__init__(name, email, password)
     
-    def to_file_line(self): # this method to convert info admin in one line
+    def to_file_line(self): 
         return f"{self.name}|{self.email}|{self._password}\n"
 
     @staticmethod
     def from_file_line(line):
-        # Read one line from admin.txt and turn it back into an admin abject
+        # Skip the line if it is the header
+        if line.startswith("Name|Email|Password"):
+            return None
+            
         parts = line.strip().split("|")
         if len(parts) == 3:
-            name = parts[0]
-            email = parts[1]
-            password = parts[2]
-            return Admin(name,email,password) #create object
+            return Admin(parts[0], parts[1], parts[2])
         return None
-# read and write admin data to admin.txt
 
-#return list all admins
+# --- File Operations ---
+
 def load_all_admins():
     admins = []
     if os.path.exists(Admin_file):
-        with open(Admin_file,"r") as file:
-            for line in file:
+        with open(Admin_file, "r") as file:
+            lines = file.readlines()
+            
+            # 1. Skip the first line (header)
+            if len(lines) <= 1:
+                return admins
+
+            for line in lines[1:]:
                 admin = Admin.from_file_line(line)
                 if admin:
                     admins.append(admin)
     return admins
-# add new admin into file admin.txt
+
 def save_new_admin(admin):
-    with open(Admin_file,"a") as file:
+    # Check if we need to write a header for a brand new file
+    file_exists = os.path.exists(Admin_file)
+    
+    with open(Admin_file, "a") as file:
+        if not file_exists:
+            file.write("Name|Email|Password\n")
         file.write(admin.to_file_line())
 
-# rewrite the whole admin.txt (use after password reset)
 def overwrite_admin_file(admins):
-    with open(Admin_file,"w") as file:
+    with open(Admin_file, "w") as file:
+        # 2. Always write the Header first when overwriting
+        file.write("Name|Email|Password\n")
+        
         for admin in admins:
             file.write(admin.to_file_line())
 
