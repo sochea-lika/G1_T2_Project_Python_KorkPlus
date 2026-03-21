@@ -25,7 +25,13 @@ class User(Person):
     def __init__(self, user_id, name, email, password):
         super().__init__(name, email, password)  
         self.user_id = user_id
+    
+    def __str__(self):
+        return f"[bold cyan]User ID:[/] {self.user_id} | [bold]Name:[/] {self.name}"
 
+    def __repr__(self):
+        return f"User(id='{self.user_id}', name='{self.name}')"
+    
 # -------------------------------
 # Registration / Login
 # -------------------------------
@@ -68,7 +74,7 @@ def register(system):
         time.sleep(0.1)
 
     user_obj = User(user_id, username, email, password)
-    system.save_all_users(user_obj)
+    system.append_user(user_obj)
 
     # Success Summary Panel
     success_text = Text.assemble(

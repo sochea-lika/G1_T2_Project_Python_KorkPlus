@@ -7,3 +7,4 @@ U005,gekleang,gekleang@gmail.com,G1234567890n!
 U006,rita,rita@gmail.com,R1234567890r!
 U007,john,john@gmail.com,Jj$34567
 U008,chet,chet@gmail.com,C1234567890c!
+U009,Zen,zen@gmail.com,Z123456789z!
