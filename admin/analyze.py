@@ -1,7 +1,7 @@
 from events.booking_file import load_all_bookings
 from events.events import load_all_events
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 from rich.panel import Panel
 from rich.columns import Columns
 from rich.text import Text
@@ -54,7 +54,6 @@ def calculate_total_revenue():
 
     # 5. Pause to prevent screen clearing (Crucial!)
     console.input("\n[dim]Press Enter to return to Admin Dashboard...[/]")
-
 
 def view_top_events():
     bookings = load_all_bookings()
@@ -115,7 +114,6 @@ def view_top_events():
     console.print("\n")
     console.print(table)
     console.input("\n[bold cyan]Press Enter to return to Admin Dashboard...[/]")
-
 
 def view_sales_extremes():
     bookings = load_all_bookings()
@@ -255,8 +253,6 @@ def view_sales_trend_graph():
     plt.close() # Clean memory after closing
 
     console.input("\n[bold cyan]Press Enter to return to Analysis Hub...[/]")
-
-from datetime import datetime, timedelta
 
 def view_daily_growth():
     bookings = load_all_bookings()

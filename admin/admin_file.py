@@ -6,7 +6,7 @@ Admin_file = "admin/admin.txt" # store admin account
 
 # admin class inherirs from Person class so admin need have username password and email
 class Admin(Person):
-    def __init__(self, name, email, password): # Fixed: should be __init__
+    def __init__(self, name, email, password):
         super().__init__(name, email, password)
     
     def to_file_line(self): 
@@ -22,6 +22,10 @@ class Admin(Person):
         if len(parts) == 3:
             return Admin(parts[0], parts[1], parts[2])
         return None
+
+    # Human-friendly string
+    def __str__(self):
+        return f"[bold goldenrod]Admin:[/] {self.name} ({self.email})"
 
 # --- File Operations ---
 

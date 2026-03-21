@@ -17,3 +17,12 @@ class Person:
     def check_password(self, password):
         return self._password == password
 
+    # Logic Comparison
+    def __eq__(self, other):
+        if not isinstance(other, Person):
+            return False
+        return self.email.lower() == other.email.lower()
+
+    # 3. DUNDER: Debug representation
+    def __repr__(self):
+        return f"Person('{self.name}', '{self.email}')"

@@ -48,7 +48,11 @@ def main():
         choice = console.input(f"{prompt_space}[bold yellow]❱❱ Choice (1-3): [/]").strip()
 
         if choice == "1":
-            admin_menu() 
+            try:
+                admin_menu()
+            except KeyboardInterrupt:
+                console.print("\n[bold red]Terminating system... Goodbye![/]")
+                exit() 
         elif choice == "2":
             user_menu()
         elif choice == "3":
