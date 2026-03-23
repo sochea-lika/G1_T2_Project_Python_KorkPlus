@@ -49,16 +49,32 @@ def save_all_bookings(bookings):
             line = f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']} | {b['date_booked']} | {b['time_booked']}\n"
             f.write(line)
 
+def save_all_cancelled_bookings(cancelled_tickets):
+    with open(CANCELLED_FILE, "w") as f:
+        # 1. Write the Header first
+        f.write("Ticket_ID | Booking_ID | User_ID | Event_ID\n")
+        
+        # 2. Write the actual data
+        for t in cancelled_tickets:
+            f.write(
+                f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n"         
+            )
+
 def load_all_cancelled_bookings():
     if not os.path.exists(CANCELLED_FILE):
         return []
 
     cancelled = []
     with open(CANCELLED_FILE, "r") as f:
-        # If you have a header line, uncomment the next line:
-        # next(f) 
+        # 3. Skip the header line
+        # This prevents Python from trying to treat "Ticket_ID" as a real ID
+        header = f.readline() 
         
         for line in f:
+            # Skip empty lines if they exist
+            if not line.strip():
+                continue
+                
             parts = line.strip().split(" | ")
 
             if len(parts) >= 4:
@@ -69,17 +85,10 @@ def load_all_cancelled_bookings():
                     "booking_id": booking_id,
                     "user_id": user_id,
                     "event_id": event_id,
-                    "quantity": 1  # one ticket_id store only 1 ticket 
+                    "quantity": 1  
                 })
 
     return cancelled
-
-def save_all_cancelled_bookings(cancelled_tickets):
-    with open(CANCELLED_FILE, "w") as f:
-        for t in cancelled_tickets:
-            f.write(
-                f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n"         
-            )
 
 def generate_booking_id(bookings):
     if not bookings:
@@ -145,14 +154,19 @@ def create_booking(user_id, event_id, quantity):
     )
 
     console.print(table)
-    payment = float(input("Enter payment amount: $"))
+    while True:
+        try:
+            payment = float(input(f"Total is ${total_price:.2f}. Enter payment amount: $"))
 
-    if payment < total_price:
-        print("Payment not enough.")
-        return
-
-    change = payment - total_price
-    print(f"Payment successful. Change: ${change}")
+            if payment >= total_price:
+                change = payment - total_price
+                print(f"Payment successful! Your change is: ${change:.2f}")
+                break
+            else:
+                print(f"Payment not enough. You still owe ${total_price - payment:.2f}. Please try again.")
+                
+        except ValueError:
+            print("Invalid input. Please enter a numeric amount (e.g., 10.50).")
 
     # --- NEW: GENERATE TIMESTAMP ---
     now = datetime.now()
