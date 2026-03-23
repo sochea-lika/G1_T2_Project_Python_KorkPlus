@@ -118,3 +118,84 @@
       -> Click 3 (Recover Password)
          . Enter gamil
          . Enter new password : requiredment strong password
+   . Confirm password : requuiredment need matching with new password
+      -> Click 4 (Exit program) : back to main page
+
+    -> Click 2 (User)
+       1.Create Account
+       2.Sign In 
+       3.Forget Password
+       4.Exit Program
+      -> Click 1 (Create Account)
+         . Enter Username
+         . Enter Email
+         . Enter Password : requiredment strong password
+         ✅ If Succesfull back to Page User
+      -> Click 2 (Sign in)
+         . Enter Username
+         . Enter password
+         ✅ If succesfull go to Page User Dashbord
+         1.Create New Booking
+         2.Cancel a Booking
+         3.Explore All Events
+         4.My Active Bookings
+         5.View Cancellation Log
+         6.Logout System
+         -> Click 1 (Create New Booking) : Show All Events
+            . Enter Event ID
+            . Enter quantity : Program show Total Price
+            . Enter payment amout : requiredment user need pay enough money and if over will cahnge for user. 
+            ✅ When payment Successfull will show ID Ticket
+         -> Click 2 (Cancel a Booking) : System will show all ticekts that user booking
+            . Enter Ticket ID to cancel
+            ✅ When Cancel succesfull sytem will alter told you and back to User Dashboard
+         -> Click 3 (Explore All Events): Show all Tickets event include ID, Title, Date, Location, Price and Seats
+         -> Click 4 (My Active Booking) : Show user's booking history
+         -> Click 5 (View Cancellation Log) : System all tickets that user cancell
+         -> Click 6 (Logout System) : back to Page User
+      
+      -> Click 3 (forget Password) 
+         . Enter username 
+         . Enter new password : requiredment strong password
+         . Confirm new password :  requiredment strong password
+      -> Click 4 (Exit Program) : back to Main page
+
+    ```
+
+6. Project Structure
+```
+   G1_T2_Project_Python_KorkPlus
+   │
+   ├── admin/
+   │   ├── admin_file.py          # File I/O operations for admin data
+   │   ├── admin.py               # Admin class and core admin logic
+   │   ├── admin.txt              # Admin data storage
+   │   └── analyze.py             # Data analysis and reporting
+   │
+   ├── events/
+   │   ├── booking_file.py        # File I/O operations for bookings
+   │   ├── bookings.txt           # Active bookings storage
+   │   ├── cancelled_bookings.txt # Cancelled bookings log
+   │   ├── event.txt              # Event data storage
+   │   ├── events.py              # Event class and event management logic
+   │   ├── tickets.py             # Ticket class and ticketing logic
+   │   └── tickets.txt            # Ticket data storage
+   │
+   ├── main/
+   │   ├── password_dot.py        # Password masking / dot display utility
+   │   ├── password.py            # Password hashing and validation
+   │   └── person.py              # Base Person class
+   │
+   ├── user/
+   │   ├── system_manager.py      # System manager role and permissions
+   │   ├── user.py                # User class and user management logic
+   │   └── users.txt              # User data storage
+   │
+   ├── run.py                     # Application entry point
+   └── README.md
+```
+
+7. Contributor: Oeng Naly, Soa Sochealika and Mong 
+Gekleang
+
+8. License: This project is for educational use only

@@ -15,11 +15,9 @@ import os
 console = Console()
 
 def calculate_total_revenue():
-    # 1. Load Data
     bookings = load_all_bookings()
     events = load_all_events()
     
-    # 2. Calculation Logic
     price_map = {e["id"]: float(e["price"]) for e in events}
     
     total = 0
@@ -32,7 +30,6 @@ def calculate_total_revenue():
             total += qty * price_map[event_id]
             total_tickets += qty
             
-    # 3. Design the Revenue Card
     revenue_text = Text.assemble(
         ("TOTAL REVENUE\n", "bold cyan"),
         (f"${total:,.2f}", "bold green underline"),
@@ -40,7 +37,6 @@ def calculate_total_revenue():
         (f"{total_tickets}", "bold yellow")
     )
 
-    # 4. Display as a centered "Stat Card"
     console.print("\n")
     console.print(Align.center(
         Panel(
@@ -52,20 +48,18 @@ def calculate_total_revenue():
         )
     ))
 
-    # 5. Pause to prevent screen clearing (Crucial!)
     console.input("\n[dim]Press Enter to return to Admin Dashboard...[/]")
 
 def view_top_events():
     bookings = load_all_bookings()
     events = load_all_events()
     
-    # 1. Count tickets per event
+    # Count tickets per event
     sales_count = {}
     for b in bookings:
         e_id = b["event_id"]
         sales_count[e_id] = sales_count.get(e_id, 0) + int(b["quantity"])
-        
-    # 2. Setup the Table
+
     table = Table(
         title="[bold reverse #6272a4]  SALES PERFORMANCE REPORT  [/]",
         header_style="bold cyan",
@@ -79,14 +73,12 @@ def view_top_events():
     table.add_column("Fill Rate %", justify="center")
     table.add_column("Performance Status", justify="center")
 
-    # 3. Calculate and Populate
+    # Calculate and Populate
     for e in events:
         sold = sales_count.get(e["id"], 0)
-        # Assuming 'seat_total' is the original capacity
         capacity = int(e.get("seat_total", 0)) 
         fill_rate = (sold / capacity * 100) if capacity > 0 else 0
-        
-        # Determine Color and Status based on performance
+
         if fill_rate >= 90:
             status = "[bold reverse green] 🔥 TOP SELLER [/]"
             color = "green"
@@ -109,14 +101,11 @@ def view_top_events():
             fill_display,
             status
         )
-
-    # 4. Display
     console.print("\n")
     console.print(table)
     console.input("\n[bold cyan]Press Enter to return to Admin Dashboard...[/]")
 
 def view_sales_extremes():
-    # 1. Load Data (assuming these return lists of dictionaries)
     bookings = load_all_bookings()
     events = load_all_events() 
     
@@ -124,7 +113,6 @@ def view_sales_extremes():
         console.print("[bold red]No events found.[/]")
         return
 
-    # 2. Map Sales - Use ['id'] because 'e' is a dictionary
     sales_map = {str(e['id']).strip(): 0 for e in events}
     
     for b in bookings:
@@ -132,8 +120,7 @@ def view_sales_extremes():
         e_id = str(b.get("event_id", "")).strip()
         if e_id in sales_map:
             sales_map[e_id] += int(b.get("quantity", 0))
-    
-    # 3. Pair titles and DATES with sales
+
     results = []
     for e in events:
         qty = sales_map.get(str(e['id']).strip(), 0)

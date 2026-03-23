@@ -1,8 +1,6 @@
-
 from admin.admin_file import Admin, load_all_admins, save_new_admin, overwrite_admin_file, find_admin_by_email
 from events.events import load_all_events, save_new_event, overwrite_event_file,is_valid_date
 from main.password import password_strength_validation
-# from tickets import get_tickets_by_event,get_total_seats_sold,load_all_tickets,cancel_ticket
 from events.booking_file import load_all_cancelled_bookings
 from main.password_dot import get_password_with_dots
 import time
@@ -34,7 +32,6 @@ def generate_event_id():
             try:
                 ids.append(int(event["id"][1:]))
             except ValueError:
-                # Skip malformed IDs
                 continue
 
     if not ids:   # safeguard against empty list
@@ -49,11 +46,10 @@ def register():
     console.print("[bold gold1] 🔑 ADMIN ACCOUNT CREATION [/]", justify="center")
     console.print("━" * 40 + "\n", style="bright_blue")
 
-    # 1. Get Admin Details using Rich Prompt
     name = Prompt.ask("[bold white]Username[/]").strip()
     email = Prompt.ask("[bold white]Admin Email[/]").strip()
 
-    # 2. Duplicate Check
+    # Duplicate Check
     if find_admin_by_email(email):
         console.print(Panel(
             f"[bold red]Error:[/] The email [italic cyan]{email}[/] is already registered to an administrator.",
@@ -63,23 +59,21 @@ def register():
         ))
         return
     
-    # 3. Secure Password Input
+    # Secure Password Input
     while True:
         password = get_password_with_dots("Choose Admin Password:").strip()
         # This will call the styled validation function we created earlier
         if password_strength_validation(password):
             break
     
-    # 4. "Saving" Animation for a professional feel
+    # "Saving" Animation 
     print("\n")
     for _ in track(range(10), description="[bold blue]Encrypting and Saving Admin Data..."):
         time.sleep(0.1)
-    
-    # 5. Save Logic
+
     new_admin = Admin(name, email, password)
     save_new_admin(new_admin)
 
-    # 6. Success Message in a Panel
     success_msg = Text.assemble(
         ("SUCCESS\n", "bold green"),
         ("Admin ", "white"), (f"{name}", "bold cyan"),
@@ -99,11 +93,9 @@ def sign_in():
     attempt = 3
 
     while attempt > 0:
-        # 1. Clear the screen FIRST so each attempt starts fresh
+        # Clear the screen
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        # 2. Create the Header
-        # Fixed: Moved the attempts into the subtitle argument correctly
         header = Panel(
             Align.center("[bold yellow]ADMINISTRATOR ACCESS CONTROL[/]"),
             style="on #282a36",
@@ -112,11 +104,10 @@ def sign_in():
         )
         console.print("\n", header)
 
-        # 3. Get Credentials
         email = Prompt.ask("[bold cyan]Institutional Email[/]").strip()
         password = get_password_with_dots("Security Password: ").strip()
 
-        # 4. Verification Logic
+        # Verification 
         admin = find_admin_by_email(email)
         
         with console.status("[bold blue]Verifying encrypted credentials...", spinner="bouncingBar"):
@@ -139,7 +130,6 @@ def sign_in():
                     (f"\n{attempt} attempts remaining.", "italic white")
                 )
                 console.print("\n", Align.center(Panel(error_msg, border_style="red", expand=False)))
-                # IMPORTANT: Pause so the user can read the error before the screen clears
                 time.sleep(2) 
             else:
                 console.print("\n", Align.center(Panel(
@@ -157,12 +147,10 @@ def forget_password():
     console.print("[dim]Identify your account to continue[/]\n")
 
     email = Prompt.ask("[bold white]Registered Admin Email[/]").strip()
-     
-    # 1. Load and Search
+
     all_admins = load_all_admins()
     target_admin = None
 
-    # UPDATED: Changed spinner="search" to spinner="dots"
     with console.status("[bold blue]Searching encrypted database...", spinner="dots"):
         time.sleep(1)
         for admin in all_admins:
@@ -170,7 +158,7 @@ def forget_password():
                 target_admin = admin
                 break
     
-    # 2. Handle User Not Found
+    # Handle User Not Found
     if target_admin is None:
         console.print(Panel(
             f"[bold red]✘ Error:[/] No administrator found with email: [italic cyan]{email}[/]",
@@ -179,8 +167,7 @@ def forget_password():
             expand=False
         ))
         return
-
-    # 3. User Found
+    
     console.print(f"[bold green]✔ Identity Verified:[/] Account linked to [bold cyan]{target_admin.name}[/]\n")
 
     while True:
@@ -194,14 +181,11 @@ def forget_password():
         if password_strength_validation(new_password):
             break
 
-    # 4. Finalizing
-    # UPDATED: Changed spinner="aesthetic" to spinner="dots"
     with console.status("[bold yellow]Updating security records...", spinner="dots"):
         target_admin.set_password(new_password)
         overwrite_admin_file(all_admins)
         time.sleep(1.5)
 
-    # 5. Success Summary
     success_msg = Text.assemble(
         ("PASSWORD RESET SUCCESSFUL\n", "bold green"),
         ("The credentials for ", "white"),
@@ -213,14 +197,12 @@ def forget_password():
     console.input("\n[dim]Press Enter to return to main menu...[/]")
 
 def add_event():
-    # 1. Header and Auto-generated ID
     event_id = generate_event_id()
     
     console.print("\n" + "━" * 50, style="bright_blue")
     console.print(f"[bold gold1] 📅 CREATE NEW EVENT [/] [dim]| System ID: {event_id}[/]", justify="center")
     console.print("━" * 50 + "\n", style="bright_blue")
 
-    # 2. Basic Information
     title = Prompt.ask("[bold white]Event Title[/]").strip()
 
     while True:
@@ -232,7 +214,7 @@ def add_event():
     description = Prompt.ask("[bold white]Description[/]").strip()
     price = Prompt.ask("[bold white]Ticket Price[/] [dim]($)[/]").strip()
 
-    # 3. Numeric Validation for Seats
+    # Numeric Validation for Seats
     while True:
         seats_input = Prompt.ask("[bold white]Total Seats Available[/]").strip()
         if seats_input.isdigit() and int(seats_input) > 0:
@@ -240,12 +222,10 @@ def add_event():
             break
         console.print("[bold red]⚠ Invalid Input:[/] Please enter a positive whole number for seats.")
 
-    # 4. "Creation" Animation
     print("\n")
     for _ in track(range(15), description="[bold blue]Registering event in database..."):
         time.sleep(0.05)
 
-    # 5. Data Structuring
     new_event = {
         "id": event_id,
         "title": title,
@@ -259,7 +239,6 @@ def add_event():
 
     save_new_event(new_event)
 
-    # 6. Success Card
     success_card = Text.assemble(
         ("EVENT CREATED SUCCESSFULLY\n\n", "bold green"),
         ("ID      : ", "dim"), (f"{event_id}\n", "bold yellow"),
@@ -300,10 +279,10 @@ def view_events():
     table.add_column("Seats", justify="center")
 
     for i, event in enumerate(events, start=1):
-        # 1. Date Comparison Logic
+        # Date Comparison Logic
         event_date_str = event.get('date', "")
         try:
-            # Assumes your date format is YYYY-MM-DD
+            # Assumes date format is YYYY-MM-DD
             event_date = datetime.strptime(event_date_str, "%Y-%m-%d").date()
             
             if event_date < today:
@@ -320,7 +299,6 @@ def view_events():
             status = "[dim]INVALID DATE[/]"
             date_display = event_date_str
 
-        # 2. Seat Display Logic
         remaining = int(event.get('seats_input', 0))
         total = int(event.get('seat_total', 0))
         seat_style = "bold red" if remaining < 10 else "green"
@@ -349,17 +327,12 @@ def edit_event():
         console.print("[bold red]No events available to edit.[/]")
         return
 
-    # 1. Search
     event_id = Prompt.ask("[bold white]Enter Event ID to edit[/]").strip().upper()
     target_event = next((e for e in events if e["id"] == event_id), None)
 
     if not target_event:
         console.print(Panel(f"[bold red]✘ Error:[/] Event {event_id} not found.", border_style="red"))
         return
-
-    # 2. Input Logic
-    # Note: Prompt.ask returns the same type as the 'default' value.
-    # To be safe, we wrap them in str() if we want to use .strip()
     
     new_title = str(Prompt.ask("Title", default=target_event['title'])).strip()
     
@@ -372,11 +345,9 @@ def edit_event():
     new_location = str(Prompt.ask("Location", default=target_event['location'])).strip()
     new_description = str(Prompt.ask("Description", default=target_event['description'])).strip()
     
-    # For Price and Seats, we ensure they stay as strings for the file-saver logic
     new_price = str(Prompt.ask("Price", default=target_event['price'])).strip()
     new_seat = str(Prompt.ask("Total Seats", default=target_event['seat_total'])).strip()
 
-    # 3. Update
     target_event.update({
         "title": new_title,
         "date": new_date,
@@ -387,7 +358,6 @@ def edit_event():
         "seats_input": new_seat # Optional: Reset remaining seats if total changes
     })
 
-    # 4. Save
     with console.status("[bold yellow]Overwriting records...", spinner="dots"):
         overwrite_event_file(events)
         time.sleep(1.2)
@@ -402,17 +372,14 @@ def delete_event():
         console.print("[bold yellow]No events found to delete.[/]")
         return
     
-    # 1. Ask for ID
     event_id = console.input("\n[bold white]Enter Event ID to [red]DELETE[/]: [/]").strip()
-    
-    # 2. Find the event to show the admin WHAT they are deleting
+
     target_event = next((e for e in events if e["id"] == event_id), None)
 
     if not target_event:
         console.print(Panel(f"[bold red]✘ Error:[/] Event [italic]{event_id}[/] not found.", border_style="red", expand=False))
         return
 
-    # 3. Warning Display
     warning_text = Text.assemble(
         ("⚠ WARNING: ", "bold red"),
         ("You are about to permanently delete:\n\n", "white"),
@@ -423,11 +390,9 @@ def delete_event():
     
     console.print("\n", Panel(warning_text, border_style="bold red", title="[blink red]CRITICAL ACTION[/]"))
 
-    # 4. Confirmation Prompt
+    # Confirmation Prompt
     # Confirm.ask is a Rich tool that forces a (y/n) response
     if Confirm.ask(f"[bold red]Are you absolutely sure you want to delete this event?[/]"):
-        
-        # 5. Execute Delete
         updated_events = [event for event in events if event["id"] != event_id]
         
         with console.status("[bold red]Purging record from database...", spinner="material"):
@@ -441,14 +406,12 @@ def delete_event():
     time.sleep(1.5)
 
 def view_admins():
-    # 1. Load Data
     admins = load_all_admins()
     
     if not admins:
         console.print(Panel("[bold red]No administrators found in the database.[/]", border_style="red"))
         return
 
-    # 2. Create the Admin Table (SUBTITLE REMOVED TO PREVENT TypeError)
     table = Table(
         title="[bold reverse #6272a4]  ADMINISTRATOR DIRECTORY  [/]",
         header_style="bold yellow",
@@ -456,15 +419,12 @@ def view_admins():
         show_lines=True
     )
 
-    # 3. Add Columns
     table.add_column("No.", justify="center", style="dim", width=4)
     table.add_column("Full Name", style="bold white", width=20)
     table.add_column("Email Address", style="cyan", width=25)
     table.add_column("Access Level", justify="center")
 
-    # 4. Add Rows
     for i, admin in enumerate(admins, start=1):
-        # Determine tag
         access_tag = "[bold green]System Admin[/]" if i == 1 else "[white]Staff[/]"
         
         table.add_row(
@@ -474,12 +434,10 @@ def view_admins():
             access_tag
         )
 
-    # 5. Display (Using the safe 'dots' spinner)
     with console.status("[bold blue]Fetching directory...", spinner="dots"):
         time.sleep(1) 
         console.print("\n")
         console.print(table)
-        # Manually print the "subtitle" info here
         console.print(Align.center(f"[dim]Total Records: {len(admins)}[/]"))
         console.print("\n")
 
@@ -490,7 +448,6 @@ def view_tickets():
         console.print(Panel("[bold red]No events found in the database.[/]", border_style="red"))
         return
 
-    # 1. Create a Table (No subtitle argument here to avoid crashes)
     table = Table(
         title="[bold reverse #6272a4]  TICKET SALES OVERVIEW  [/]",
         header_style="bold cyan",
@@ -498,14 +455,12 @@ def view_tickets():
         expand=True
     )
 
-    # 2. Define Columns
     table.add_column("Event Title", style="white", width=25)
     table.add_column("Sales Progress", width=30)
     table.add_column("Sold", justify="right", style="green")
     table.add_column("Remaining", justify="right", style="yellow")
     table.add_column("Status", justify="center")
 
-    # 3. Populate Rows
     for event in events:
         total = int(event.get("seat_total", 0))
         remaining = int(event.get("seats_input", 0))
@@ -531,24 +486,20 @@ def view_tickets():
             status
         )
 
-    # 4. Display (Using the standard 'dots' spinner)
     with console.status("[bold blue]Generating sales report...", spinner="dots"):
         time.sleep(1)
         console.print("\n", table)
-        # Manually print the subtitle to be safe
         console.print(Align.center("[dim]Live ticket sales and availability data[/]\n"))
 
 def view_cancellation_analysis():
     events = load_all_events()
-    # Assuming you have a function to load the 'history' of cancellations
     all_bookings = load_all_bookings() 
-    cancelled_bookings = load_all_cancelled_bookings() # You'll need this function
+    cancelled_bookings = load_all_cancelled_bookings()
     
     if not events:
         console.print(Panel("[bold red]No event data available for analysis.[/]", border_style="red"))
         return
 
-    # 1. Create the Table
     table = Table(
         title="[bold reverse #e74c3c]  CANCELLATION & REFUND ANALYTICS  [/]",
         header_style="bold magenta",
@@ -556,19 +507,16 @@ def view_cancellation_analysis():
         expand=True
     )
 
-    # 2. Define Columns
     table.add_column("Event Title", style="white", width=25)
     table.add_column("Loss Progress (Qty)", width=30)
     table.add_column("Active", justify="right", style="green")
     table.add_column("Cancelled", justify="right", style="bold red")
     table.add_column("Revenue Loss", justify="right", style="yellow")
 
-    # 3. Populate Rows
     for event in events:
         e_id = event['id']
         price = float(event.get('price', 0))
         
-        # Count Active vs Cancelled for this specific event
         active_qty = sum(int(b['quantity']) for b in all_bookings if b['event_id'] == e_id)
         cancel_qty = sum(int(b['quantity']) for b in cancelled_bookings if b['event_id'] == e_id)
         
@@ -576,10 +524,8 @@ def view_cancellation_analysis():
         loss_percentage = (cancel_qty / total_attempts) if total_attempts > 0 else 0
         total_loss_val = cancel_qty * price
         
-        # Build the Visual "Loss Bar"
         bar_width = 10
         filled = int(loss_percentage * bar_width)
-        # Red represents the 'Lost' portion
         bar = f"[red]{'━' * filled}[/][green]{'━' * (bar_width - filled)}[/]"
         
         table.add_row(
@@ -590,12 +536,10 @@ def view_cancellation_analysis():
             f"[bold red]-${total_loss_val:,.2f}[/]"
         )
 
-    # 4. Display with a "Security/Audit" Feel
     with console.status("[bold red]Auditing cancellation logs...", spinner="dots"):
         time.sleep(1.2)
         console.print("\n", table)
         
-        # Calculated Totals for a footer
         total_lost_revenue = sum(int(b['quantity']) * float(next((e['price'] for e in events if e['id'] == b['event_id']), 0)) for b in cancelled_bookings)
         
         summary_panel = Panel(
@@ -658,12 +602,10 @@ def admin_health_check():
 
 def admin_dashboard(logged_in_admin):
     while True:
-        # 1. Refresh Screen
         os.system('cls' if os.name == 'nt' else 'clear')
 
         admin_health_check()
-
-        # 2. Top Status Bar
+        
         status_text = Text.assemble(
             (" ADMIN SESSION ACTIVE ", "bold white on blue"),
             (f"  👤 User: {logged_in_admin.name} ", "bold blue"),
@@ -672,8 +614,8 @@ def admin_dashboard(logged_in_admin):
         console.print(status_text, justify="right")
         console.print("━" * console.width, style="blue")
 
-        # 3. Create Categorized Menu Content
-        # 1. Category A: Event Management
+        # Create Categorized Menu Content
+        # Category A: Event Management
         event_mgmt = Text()
         event_mgmt.append("\n [1] ", style="bold yellow")
         event_mgmt.append("Add New Event\n")
@@ -684,7 +626,7 @@ def admin_dashboard(logged_in_admin):
         event_mgmt.append(" [4] ", style="bold red")
         event_mgmt.append("Delete Event") # Removed \n for better fit
 
-        # 2. Category B: Ticketing & Data
+        # Category B: Ticketing & Data
         ticket_data = Text()
         ticket_data.append("\n [5] ", style="bold cyan")
         ticket_data.append("Sales Overview\n")
@@ -695,27 +637,23 @@ def admin_dashboard(logged_in_admin):
         ticket_data.append(" [8] ", style="bold green")
         ticket_data.append("Event Analysis")
 
-        # 3. Category C: Session
+        # Category C: Session
         session_mgmt = Text()
         session_mgmt.append("\n [9] ", style="bold white")
         session_mgmt.append("Logout\n")
         session_mgmt.append(" [10] ", style="bold bright_red")
         session_mgmt.append("Shutdown System")
 
-        # 4. Build Panels with FIXED Width and FIXED Height
-        # Height=8 is enough to fit 4 lines plus the padding comfortably
+        # Build Panels with FIXED Width and FIXED Height
         p1 = Panel(event_mgmt, title="[bold yellow]EVENT MGMT[/]", border_style="yellow", width=32, height=9)
         p2 = Panel(ticket_data, title="[bold cyan]TICKETS & DATA[/]", border_style="cyan", width=32, height=9)
         p3 = Panel(session_mgmt, title="[bold white]SESSION[/]", border_style="white", width=32, height=9)
 
-        # 5. Display the Grid (Centering both the Columns)
         console.print("\n")
-        # Columns align their content to the top by default
         dashboard = Columns([p1, p2, p3], align="center", expand=False)
         console.print(Align.center(dashboard))
         console.print("\n" + "━" * console.width, style="blue")
 
-        # 6. Styled Input
         prompt_indent = " " * (int(console.width / 2) - 15)
         option = console.input(f"{prompt_indent}[bold yellow]Admin Action ❱ [/]").strip()
 
@@ -764,15 +702,12 @@ def admin_dashboard(logged_in_admin):
 
 def main():
     while True:
-        # 1. Clear Screen for that "App" feel
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        # 2. Dynamic Width Calculation (50% of terminal)
         dynamic_width = max(40, min(75, int(console.width * 0.5)))
 
-        # 3. Design the Admin Entry Menu
         menu_content = Text()
-        menu_content.append("\n") # Top Padding
+        menu_content.append("\n") 
         menu_content.append(" [1] ", style="bold cyan")
         menu_content.append("REGISTER NEW ADMIN\n", style="white")
         menu_content.append("\n [2] ", style="bold cyan")
@@ -781,24 +716,21 @@ def main():
         menu_content.append("RECOVER PASSWORD\n", style="white")
         menu_content.append("\n [4] ", style="bold red")
         menu_content.append("EXIT SYSTEM\n", style="white")
-        menu_content.append("\n") # Bottom Padding
+        menu_content.append("\n")
 
-        # 4. Create the Panel with a "High-Security" box style
         entry_panel = Panel(
             Align.center(menu_content),
             title="[bold reverse #1e1e2e] 🛡️  ADMIN MANAGEMENT SYSTEM  [/]",
             subtitle="[italic dim]Authorized Access Only[/]",
             width=dynamic_width,
             border_style="bright_blue",
-            box=DOUBLE_EDGE # Uses a thick, double-edge border for impact
+            box=DOUBLE_EDGE 
         )
 
-        # 5. Print Layout
-        console.print("\n" * 3) # Push down from top
+
+        console.print("\n" * 3) 
         console.print(Align.center(entry_panel))
-        
-        # 6. Centered Input Prompt
-        # Math to keep the prompt roughly centered under the panel
+  
         indent = " " * (int(console.width / 2) - 12)
         option = console.input(f"\n{indent}[bold cyan]Security Action ❱ [/]").strip()
 
@@ -806,13 +738,11 @@ def main():
         if option == "1":
             register()
             if logged_in_admin:
-                # This opens your categorized admin_dashboard
                 admin_dashboard(logged_in_admin)
 
         elif option == "2":
             logged_in_admin = sign_in()
             if logged_in_admin:
-                # This opens your categorized admin_dashboard
                 admin_dashboard(logged_in_admin)
 
         elif option == "3":

@@ -56,7 +56,7 @@ def save_new_admin(admin):
 
 def overwrite_admin_file(admins):
     with open(Admin_file, "w") as file:
-        # 2. Always write the Header first when overwriting
+        # write the Header first when overwriting
         file.write("Name|Email|Password\n")
         
         for admin in admins:
