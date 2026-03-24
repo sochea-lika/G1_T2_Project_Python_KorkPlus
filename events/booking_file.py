@@ -19,12 +19,10 @@ def load_all_bookings():
 
     bookings = []
     with open(BOOKING_FILE, "r") as f:
-        # Check if the file is empty
         lines = f.readlines()
-        if len(lines) <= 1: # Only header or empty
+        if len(lines) <= 1: 
             return []
 
-        # Start from the second line (index 1) to skip header
         for line in lines[1:]: 
             parts = line.strip().split(" | ")
 
@@ -41,20 +39,16 @@ def load_all_bookings():
 
 def save_all_bookings(bookings):
     with open(BOOKING_FILE, "w") as f:
-        # 1. Write the Header first
         f.write("Booking ID | User ID | Event ID | Quantity | Date Booked | Time Booked\n")
         
-        # 2. Write the data
         for b in bookings:
             line = f"{b['id']} | {b['user_id']} | {b['event_id']} | {b['quantity']} | {b['date_booked']} | {b['time_booked']}\n"
             f.write(line)
 
 def save_all_cancelled_bookings(cancelled_tickets):
     with open(CANCELLED_FILE, "w") as f:
-        # 1. Write the Header first
         f.write("Ticket_ID | Booking_ID | User_ID | Event_ID\n")
-        
-        # 2. Write the actual data
+
         for t in cancelled_tickets:
             f.write(
                 f"{t['ticket_id']} | {t['booking_id']} | {t['user_id']} | {t['event_id']}\n"         
@@ -66,12 +60,9 @@ def load_all_cancelled_bookings():
 
     cancelled = []
     with open(CANCELLED_FILE, "r") as f:
-        # 3. Skip the header line
-        # This prevents Python from trying to treat "Ticket_ID" as a real ID
         header = f.readline() 
         
         for line in f:
-            # Skip empty lines if they exist
             if not line.strip():
                 continue
                 
@@ -111,10 +102,8 @@ def create_booking(user_id, event_id, quantity):
         console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
         return
 
-    # --- NEW: EXPIRATION CHECK ---
     try:
         today = datetime.now().date()
-        # Assumes format YYYY-MM-DD from your load_all_events()
         event_date = datetime.strptime(target_event["date"], "%Y-%m-%d").date()
 
         if event_date < today:
@@ -131,7 +120,6 @@ def create_booking(user_id, event_id, quantity):
     except ValueError:
         console.print("[yellow]⚠ Warning: Event date format is invalid. Proceeding with caution...[/]")
 
-    # --- EXISTING SEAT CHECK ---
     seats_available = int(target_event["seats_input"])
 
     if seats_available < quantity:
@@ -168,10 +156,9 @@ def create_booking(user_id, event_id, quantity):
         except ValueError:
             print("Invalid input. Please enter a numeric amount (e.g., 10.50).")
 
-    # --- NEW: GENERATE TIMESTAMP ---
     now = datetime.now()
-    date_booked = now.strftime("%Y-%m-%d") # Use this for your Daily/Weekly graphs
-    time_booked = now.strftime("%H:%M:%S") # Optional: Use this for detailed logs
+    date_booked = now.strftime("%Y-%m-%d") 
+    time_booked = now.strftime("%H:%M:%S") 
 
     booking_id = generate_booking_id(bookings)
 
@@ -181,13 +168,12 @@ def create_booking(user_id, event_id, quantity):
         "user_id": user_id,
         "event_id": event_id,
         "quantity": quantity,
-        "date_booked": date_booked,  # Critical for your graphs
-        "time_booked": time_booked   # Extra detail for admin logs
+        "date_booked": date_booked,  
+        "time_booked": time_booked   
     })
 
     save_all_bookings(bookings)
 
-    # ... (Rest of your ticket generation code) ...
     ticket_panels = []
     for i in range(quantity):
         ticket_id = generate_ticket_id(tickets)
@@ -196,7 +182,7 @@ def create_booking(user_id, event_id, quantity):
             "booking_id": booking_id,
             "user_id": user_id,
             "event_id": event_id,
-            "booked_at": f"{date_booked} {time_booked}" # Stamp the ticket too!
+            "booked_at": f"{date_booked} {time_booked}" 
         }
         tickets.append(new_ticket)
         
@@ -230,7 +216,6 @@ def cancel_ticket(user_id, ticket_id):
     console = Console()
     tickets = load_all_tickets()
 
-    # find ticket belonging to this user
     target = next((t for t in tickets if t["ticket_id"] == ticket_id and t["user_id"] == user_id), None)
 
     if not target:
@@ -238,7 +223,6 @@ def cancel_ticket(user_id, ticket_id):
         console.input("\n[bold cyan]Press Enter to return to Dashboard...[/]")
         return
 
-    # restore event seat
     events = load_all_events()
     event = next((e for e in events if e["id"] == target["event_id"]), None)
 
@@ -250,7 +234,6 @@ def cancel_ticket(user_id, ticket_id):
     tickets = [t for t in tickets if t["ticket_id"] != ticket_id]
     save_all_tickets(tickets)
 
-    # update booking quantity
     bookings = load_all_bookings()
 
     for b in bookings:
@@ -284,7 +267,6 @@ def view_cancelled_bookings(user_id=None):
         console.print(Panel("No cancelled tickets found.", style="yellow", title="[bold]Notice[/]"))
         return
 
-    # Create the Table
     table = Table(
         title="[bold red]CANCELLED TICKETS[/]", 
         caption="Review your cancellation history",
@@ -322,7 +304,6 @@ def view_tickets(user_id=None):
 
     console.print("\n[bold reverse #6272a4]  BOOKING HISTORY  [/]\n")
 
-    # 1. Create an empty list to store our "cards"
     ticket_cards = []
     found_any = False
 
@@ -334,27 +315,23 @@ def view_tickets(user_id=None):
         event = next((e for e in events if e["id"] == b["event_id"]), None)
         event_name = event["title"] if event else "N/A"
 
-        # 2. Build the string for the card
         ticket_content = (
             f"[bold white]TICKET ID :[/] [yellow]{b['ticket_id']}[/]\n"
             f"[bold white]EVENT     :[/] [green]{event_name}[/]\n"
             f"[dim]Booking: {b['booking_id']}[/]"
         )
 
-        # 3. Create the Panel and ADD IT to the list (don't print yet!)
         ticket_cards.append(
             Panel(
                 ticket_content, 
                 title=f"[bold]Ticket #{idx}[/]", 
                 border_style="bright_blue",
                 expand=False,
-                width=35  # Setting a fixed width helps the grid stay uniform
+                width=35  
             )
         )
 
-    # 4. After the loop, print everything in columns
     if found_any:
-        # padding=(top/bottom, left/right)
         console.print(Columns(ticket_cards, padding=(1, 1)))
     else:
         console.print("[italic red]No bookings available.[/]")
@@ -362,7 +339,7 @@ def view_tickets(user_id=None):
 def view_booking(user_id=None):
     bookings = load_all_bookings()
     events = load_all_events()
-    tickets = load_all_tickets() # Make sure to load your ticket data
+    tickets = load_all_tickets()
     console = Console()
 
     if not bookings:
@@ -375,15 +352,14 @@ def view_booking(user_id=None):
         if user_id and b["user_id"] != user_id:
             continue
 
-        # 1. Find the Event
+        # Find the Event
         event = next((e for e in events if e["id"] == b["event_id"]), None)
         
-        # 2. Find ALL Ticket IDs linked to this Booking ID
-        # We use a list comprehension to get all matching IDs
+        # Find ALL Ticket IDs linked to this Booking ID
+        # use a list comprehension to get all matching IDs
         matching_tickets = [t['ticket_id'] for t in tickets if t['booking_id'] == b['id']]
         ticket_str = ", ".join(matching_tickets) if matching_tickets else "No tickets generated"
 
-        # 3. Build the Event Details section
         event_info = ""
         if event:
             event_info = (
@@ -394,7 +370,6 @@ def view_booking(user_id=None):
                 f"Price      : ${event['price']}"
             )
 
-        # 4. Build the Main Card content
         content = Group(
             f"[bold white]Booking ID[/]  : {b['id']}",
             f"[bold white]User ID[/]     : {b['user_id']}",
@@ -404,7 +379,6 @@ def view_booking(user_id=None):
             event_info
         )
 
-        # 5. Print the styled Panel
         console.print(Panel(
             content, 
             title=f"Booking #{idx}", 

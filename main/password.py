@@ -5,10 +5,8 @@ from rich.text import Text
 console = Console()
 
 def password_strength_validation(password):
-    # Setup for checks
     special_characters = "!@#$%^&*()"
-    
-    # Validation Logic
+
     checks = {
         "Length (8+)": len(password) >= 8,
         "Lowercase": any(c.islower() for c in password),
@@ -17,12 +15,10 @@ def password_strength_validation(password):
         "Special Character": any(c in special_characters for c in password)
     }
 
-    # If all checks pass, return True immediately
     if all(checks.values()):
         console.print("[bold green]✔ Password meets all security requirements![/]")
         return True
 
-    # Otherwise, show a "Requirement Report"
     feedback = Text()
     feedback.append("Password Security Requirements:\n\n", style="bold white")
 

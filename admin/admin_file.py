@@ -14,7 +14,6 @@ class Admin(Person):
 
     @staticmethod
     def from_file_line(line):
-        # Skip the line if it is the header
         if line.startswith("Name|Email|Password"):
             return None
             
@@ -35,7 +34,6 @@ def load_all_admins():
         with open(Admin_file, "r") as file:
             lines = file.readlines()
             
-            # 1. Skip the first line (header)
             if len(lines) <= 1:
                 return admins
 

@@ -551,7 +551,6 @@ def view_cancellation_analysis():
         console.print(Align.center("[dim]Data based on processed refund requests[/]\n"))
 
 def admin_health_check():
-    # 1. Logic (Same as before)
     bookings = load_all_bookings()
     events = load_all_events()
     price_map = {e["id"]: float(e["price"]) for e in events}
@@ -568,8 +567,6 @@ def admin_health_check():
     top_event_title = sorted_events[0]["title"] if sorted_events else "N/A"
     low_seats_count = len([e for e in events if int(e['seats_input']) < 5])
 
-    # 2. CREATE THE "SATISFYING" TABLE
-    # Added padding inside the table and set column ratios
     health_table = Table(
         show_header=False, 
         box=None, 
@@ -581,22 +578,19 @@ def admin_health_check():
     health_table.add_column("Label", width=20, style="bold white")
     health_table.add_column("Value", width=30, justify="right")
 
-    # 3. ADDING ROWS
     health_table.add_row("💰", "Total Revenue", f"[bold green]${total_rev:,.2f}[/]")
     health_table.add_row("🔥", "Top Seller", f"[bold cyan]{top_event_title}[/]")
     health_table.add_row("⚠️ ", "Critical Seats", f"[bold red]{low_seats_count} Events low stock[/]")
 
-    # 4. THE PANEL (The Box)
-    # Added 'padding' for breathing room and 'width' for a solid look
-    console.print("\n") # Space above
+    console.print("\n")
     console.print(Align.center(
         Panel(
             health_table, 
             title="[bold bright_blue]📊 SYSTEM HEALTH SUMMARY[/]", 
             subtitle="[dim]Real-time Data[/]",
             border_style="bright_blue",
-            padding=(1, 2), # Internal spacing (top/bottom, left/right)
-            expand=False    # Box will stay wide enough for our columns
+            padding=(1, 2), 
+            expand=False   
         )
     ))
 
@@ -644,7 +638,6 @@ def admin_dashboard(logged_in_admin):
         session_mgmt.append(" [10] ", style="bold bright_red")
         session_mgmt.append("Shutdown System")
 
-        # Build Panels with FIXED Width and FIXED Height
         p1 = Panel(event_mgmt, title="[bold yellow]EVENT MGMT[/]", border_style="yellow", width=32, height=9)
         p2 = Panel(ticket_data, title="[bold cyan]TICKETS & DATA[/]", border_style="cyan", width=32, height=9)
         p3 = Panel(session_mgmt, title="[bold white]SESSION[/]", border_style="white", width=32, height=9)

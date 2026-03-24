@@ -38,7 +38,6 @@ def load_all_events():
     return events
 
 def save_new_event(event):
-    # If the file doesn't exist yet, we should create it and add the header
     file_exists = os.path.exists(Event_file)
     
     with open(Event_file, "a") as file:
@@ -51,10 +50,8 @@ def save_new_event(event):
 
 def overwrite_event_file(events):
     with open(Event_file, "w") as file:
-        # 1. Write the Header
         file.write("ID|Title|Date|Location|Description|Price|Seats_Left|Seats_Total\n")
-        
-        # 2. Write all events
+
         for event in events:
             file.write(f"{event['id']}|{event['title']}|{event['date']}|{event['location']}|"
                        f"{event['description']}|{event['price']}|{event['seats_input']}|"
@@ -66,7 +63,6 @@ def is_valid_date(date_text):
         datetime.strptime(date_text, "%Y-%m-%d")
         return True
     except ValueError:
-        # Create a stylized error message
         error_content = Text.assemble(
             ("📅 ", "yellow"),
             ("Invalid Date Format!\n", "bold white"),

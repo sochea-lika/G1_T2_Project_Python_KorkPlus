@@ -124,27 +124,23 @@ def view_sales_extremes():
     results = []
     for e in events:
         qty = sales_map.get(str(e['id']).strip(), 0)
-        # We pull the date directly from the dictionary we got from the txt file
         results.append({
             "title": e['title'],
             "date": e['date'], 
             "qty": qty
         })
     
-    # 4. Sort: Highest sales first
+    # Highest sales first
     results.sort(key=lambda x: x['qty'], reverse=True)
 
-    # 5. Extract extremes
     highest = results[0]
     lowest = results[-1]
     total_sales = sum(sales_map.values())
 
-    # 6. Display
     console.print("\n")
     if total_sales == 0:
         console.print(Panel(Align.center("[yellow]No tickets sold yet.[/]")))
     else:
-        # Creating styled text including the DATE from the txt file
         high_text = Text.assemble(
             (f"{highest['title']}\n", "bold green"),
             (f"Date: {highest['date']}\n", "dim"),
@@ -168,8 +164,7 @@ def menu_analyze():
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         console.print(Panel("[bold magenta]📊 BUSINESS INTELLIGENCE & ANALYTICS[/]", style="magenta"))
-        
-        # Show the Health Check at the top so they see total revenue immediately
+
         from admin.admin import admin_health_check
         admin_health_check() 
         
@@ -183,36 +178,32 @@ def menu_analyze():
         if choice == "1":
             view_sales_trend_graph()
         elif choice == "2":
-            view_sales_extremes() # The High/Low one we built
+            view_top_events()
+            view_sales_extremes()
         elif choice == "3":
-            calculate_total_revenue() # The detailed financial one
+            calculate_total_revenue() 
         elif choice == "0":
-            break # Returns to the main admin_dashboard loop
+            break 
 
 def view_sales_trend_graph():
-    # Load Data
     bookings = load_all_bookings()
     if not bookings:
         console.print("[bold red]No booking data available for analysis.[/]")
         return
 
-    # Ask Admin for the Scale (Daily, Weekly, Monthly)
     scale = Prompt.ask(
         "\n[bold white]View sales trend by[/]", 
         choices=["daily", "weekly", "monthly"], 
         default="daily"
     )
 
-    # Aggregate Data into Time Buckets
     trend_data = {}
     for b in bookings:
-        # Get the date string (or use today if missing)
         date_str = b.get("date_booked", datetime.now().strftime("%Y-%m-%d"))
         
         try:
             dt_obj = datetime.strptime(date_str, "%Y-%m-%d")
-            
-            # Grouping Logic
+
             if scale == "monthly":
                 key = dt_obj.strftime("%Y-%m")    # e.g., 2026-03
             elif scale == "weekly":
@@ -224,20 +215,16 @@ def view_sales_trend_graph():
             trend_data[key] = trend_data.get(key, 0) + qty
             
         except ValueError:
-            continue # Skips invalid date formats to prevent crash
+            continue 
 
-    # 4. Sort keys chronologically for the X-axis
     sorted_keys = sorted(trend_data.keys())
     values = [trend_data[k] for k in sorted_keys]
 
-    # 5. Plotting (CLEANED UP)
-    plt.close('all')  # Close any ghost windows first
+    plt.close('all')  
     plt.figure(figsize=(10, 6))
-    
-    # Using a professional theme-matching color (Slate Blue)
+
     plt.plot(sorted_keys, values, marker='o', linestyle='-', color='#6272a4', linewidth=2.5)
     
-    # Styling the Canvas
     plt.title(f'Sales Performance Trend: {scale.capitalize()}', fontsize=14, fontweight='bold')
     plt.xlabel('Time Period', fontsize=12)
     plt.ylabel('Tickets Sold', fontsize=12)
@@ -245,26 +232,26 @@ def view_sales_trend_graph():
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.tight_layout()
 
-    # 6. Display to Admin
+
     console.print(f"\n[bold green]📊 Generating {scale} graph...[/]")
     console.print("[dim italic]Close the graph window to return to the menu.[/]")
     
-    plt.show()  # Execution pauses here until window is closed
-    plt.close() # Clean memory after closing
+    plt.show()  
+    plt.close() 
 
     console.input("\n[bold cyan]Press Enter to return to Analysis Hub...[/]")
 
 def view_daily_growth():
     bookings = load_all_bookings()
     
-    # 1. Get Date Strings
+    # Get Date Strings
     today_dt = datetime.now()
     yesterday_dt = today_dt - timedelta(days=1)
     
     today_str = today_dt.strftime("%Y-%m-%d")
     yesterday_str = yesterday_dt.strftime("%Y-%m-%d")
     
-    # 2. Calculate Totals
+    #  Calculate Totals
     today_sales = 0
     yesterday_sales = 0
     
@@ -277,14 +264,13 @@ def view_daily_growth():
         elif date == yesterday_str:
             yesterday_sales += qty
 
-    # 3. Calculate Growth Percentage
+    # Calculate Growth Percentage
     if yesterday_sales > 0:
         growth = ((today_sales - yesterday_sales) / yesterday_sales) * 100
     else:
         # If yesterday was 0, and today is > 0, it's 100% growth
         growth = 100 if today_sales > 0 else 0
 
-    # 4. Create the Visual Table
     table = Table(title="📈 Day-over-Day (DoD) Analysis", box=None)
     table.add_column("Period", style="cyan")
     table.add_column("Tickets Sold", justify="right")
@@ -292,7 +278,6 @@ def view_daily_growth():
     table.add_row("Yesterday", str(yesterday_sales))
     table.add_row("Today", f"[bold white]{today_sales}[/]")
     
-    # Status Logic
     if today_sales > yesterday_sales:
         status = f"[bold green]▲ +{growth:.1f}% Growth[/]"
     elif today_sales < yesterday_sales:
@@ -303,62 +288,3 @@ def view_daily_growth():
     table.add_row("Status", status)
     
     console.print(Panel(table, title="[bold magenta]MOMENTUM CHECK[/]", border_style="magenta", expand=False))
-
-def view_daily_comparison_graph():
-    bookings = load_all_bookings()
-    
-    #  Get the exact date strings for Today and Yesterday
-    # Based on your current system time: 2026-03-20
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    yesterday_str = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    # Initialize counters
-    today_count = 0
-    yesterday_count = 0
-    
-    # Loop through and only sum up the quantities for these two days
-    for b in bookings:
-        b_date = b.get("date_booked", "")
-        b_qty = int(b.get("quantity", 0))
-        
-        if b_date == today_str:
-            today_count += b_qty
-        elif b_date == yesterday_str:
-            yesterday_count += b_qty
-
-    #  Create the Bar Chart
-    plt.close('all')
-    plt.figure(figsize=(7, 6))
-    
-    labels = [f"Yesterday\n({yesterday_str})", f"Today\n({today_str})"]
-    counts = [yesterday_count, today_count]
-    colors = ['#ffb86c', '#50fa7b'] # Orange for yesterday, Green for today
-
-    bars = plt.bar(labels, counts, color=colors, edgecolor='black', width=0.6)
-
-    # Add the actual number on top of each bar so the Admin doesn't have to guess
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, height,
-                 f'{int(height)}', ha='center', va='bottom', 
-                 fontsize=12, fontweight='bold')
-
-    # Styling the Graph
-    plt.title('Daily Sales Volume: Yesterday vs Today', fontsize=14, fontweight='bold')
-    plt.ylabel('Number of Tickets Sold', fontsize=12)
-    plt.ylim(0, max(counts) * 1.2 if max(counts) > 0 else 10) # Auto-scale height
-    plt.grid(axis='y', linestyle='--', alpha=0.3)
-    
-    plt.tight_layout()
-    plt.show()
-    plt.close()
-    
-    console.input("\n[dim]Press Enter to return...[/]")
-
-if __name__ == "__main__":
-    # calculate_total_revenue()
-    # view_top_events()
-    # view_sales_extremes()
-    # view_sales_trend_graph()
-    # view_daily_growth()
-    view_daily_comparison_graph()

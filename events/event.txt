@@ -3,11 +3,11 @@ E001|Songkran KH|2026-04-06|CADT|Celebrate Khmer New Year|2|3|100
 E002|Water Festival Gala|2026-11-15|Riverside|Annual celebration of the Tonle Sap reversal|5|400|500
 E003|CADT Hackathon 2026|2026-05-10|CADT Hall|48-hour coding challenge for CS students|1|18|50
 E004|Phnom Penh Jazz Night|2026-04-20|Sora Sky Bar|Elegant evening with international jazz artists|35|35|60
-E005|K-Pop World Tour PP|2026-06-30|Olympic Stadium|Special performance by top K-Pop groups|85|4950|5000
+E005|K-Pop World Tour PP|2026-06-30|Olympic Stadium|Special performance by top K-Pop groups|85|4940|5000
 E006|Digital Marketing Summit|2026-05-25|Factory PP|Learn the latest trends in digital growth|20|200|200
 E007|Siem Reap Food Expo|2026-08-12|Pub Street|Exploring flavors of authentic Khmer cuisine|2|250|300
 E008|Startup Launchpad|2026-04-15|Raintree|Pitching session for young entrepreneurs|10|54|100
 E009|Art & Soul Exhibition|2026-07-05|National Museum|Modern Khmer paintings and sculptures display|8|88|150
 E010|Classic Cinema Night|2026-04-05|Legend Cinema|Screening of award-winning Khmer films|5|40|50
-E011|Tech Charity Run|2026-09-20|Koh Pich|Running for digital literacy in rural schools|15|900|1000
+E011|Tech Charity Run|2026-09-20|Koh Pich|Running for digital literacy in rural schools|15|890|1000
 E012|Suly Pheng Concert|2026-03-10|Koh Pich|Enjoy sad songs|15|71|100

@@ -5,16 +5,14 @@ def get_password_with_dots(prompt="Enter password: "):
     print(prompt, end='', flush=True)
     password = ""
     while True:
-        # Get a single character without showing it
         char = msvcrt.getch().decode('utf-8')
         
-        if char == '\r' or char == '\n':  # Enter key
+        if char == '\r' or char == '\n':  
             print()
             return password
-        elif char == '\b':  # Backspace key
+        elif char == '\b':  
             if len(password) > 0:
                 password = password[:-1]
-                # Erase the last dot from the screen
                 sys.stdout.write('\b \b')
                 sys.stdout.flush()
         else:

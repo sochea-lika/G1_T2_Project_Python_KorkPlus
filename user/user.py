@@ -37,13 +37,11 @@ class User(Person):
 # -------------------------------
 def register(system):
     users = system.load_users()
-    # Dynamic ID generation
     user_id = f"U{len(users)+1:03d}"
 
     console.print("\n[bold cyan]✨ CREATE YOUR ACCOUNT[/]")
     console.print("[dim]Please fill in your details below[/]\n")
 
-    # --- STEP 1: USERNAME ---
     while True:
         username = Prompt.ask("[bold white]Step 1/3:[/] Enter Username")
         if username in users:
@@ -51,32 +49,24 @@ def register(system):
             continue
         break
 
-    # --- STEP 2: EMAIL ---
     email = Prompt.ask("[bold white]Step 2/3:[/] Enter Email Address")
 
-    # --- STEP 3: PASSWORD ---
     while True:
         password = get_password_with_dots("Step 3/3: Enter Password:")
         
-        # Validation feedback
         if password_strength_validation(password):
             with console.status("[bold green]Validating password strength...", spinner="point"):
                 time.sleep(1)
             break
         else:
-            # The validation function likely prints its own error, 
-            # but we can add a general hint here.
             console.print("[dim red]Try a stronger password (e.g., 8+ chars, mix of types).[/]")
 
-    # --- FINALIZING ---
-    # Create a nice "saving" animation
     for _ in track(range(10), description="[cyan]Syncing with database..."):
         time.sleep(0.1)
 
     user_obj = User(user_id, username, email, password)
     system.append_user(user_obj)
 
-    # Success Summary Panel
     success_text = Text.assemble(
         ("Welcome to the community, ", "white"),
         (f"{username}", "bold cyan"),
@@ -96,21 +86,16 @@ def login(system):
     attempt = 3
 
     while attempt > 0:
-        # Create a header for the login attempt
         login_header = Text.assemble( 
             ("\n🔒 SECURITY ACCESS ", "bold yellow"),
             (f"| Attempt: {attempt}/3", "dim white")
         )
         console.print(login_header)
-        
-        # Using Rich Prompt for the username
+
         username = Prompt.ask("[bold cyan]Username[/]")
-        
-        # Use your existing dot function for the password
         password = get_password_with_dots("Password: ")
      
         if username in users and password == users[username]["password"]:
-            # Success Animation
             with console.status("[bold green]Authenticating...", spinner="aesthetic"):
                 time.sleep(1)
             
@@ -118,20 +103,17 @@ def login(system):
             time.sleep(1)
             
             user_data = users[username]
-            # Returning the User object
             return User(user_data["id"], username, user_data["email"], password)
         
         else:
             attempt -= 1
             if attempt > 0:
-                # Warning for failed attempt
                 error_msg = Text.assemble(
                     ("❌ Invalid credentials. ", "bold red"),
                     (f"{attempt} attempts remaining.", "italic white")
                 )
                 console.print(Panel(error_msg, border_style="red", expand=False))
             else:
-                # Final lockout message
                 console.print(Panel(
                     "[bold white on red] ACCESS BLOCKED [/]\n\nToo many failed attempts.", 
                     title="System Alert", 
@@ -144,17 +126,15 @@ def login(system):
 def forgot_password(system):
     users = system.load_users()
     
-    # 1. Identification
+    # Identification
     username = Prompt.ask("\n[bold yellow]Enter username for reset[/]").strip()
 
     if username not in users:
         console.print(Panel("[bold red]❌ User not found.[/]", border_style="red", expand=False))
         return
 
-    # 2. Verified State
     console.print(f"[bold green]✔ Identity Verified:[/] Resetting password for [bold cyan]{username}[/]\n")
 
-    # 3. Use your custom "Dot" input
     while True:
         new_pw = get_password_with_dots("Enter New Password: ")
         confirm_pw = get_password_with_dots("Confirm New Password: ")
@@ -168,18 +148,17 @@ def forgot_password(system):
             continue
         break
 
-    # 4. Save Logic
+    # Save Logic
     with console.status("[bold yellow]Updating security records...", spinner="dots"):
-        # 1. Update the password in the dictionary
+        # Update the password in the dictionary
         users[username]['password'] = new_pw
         
-        # 2. Save the WHOLE dictionary back to the file
+        # Save the WHOLE dictionary back to the file
         system.save_all_users(users) 
         time.sleep(1.5)
 
     console.print("\n", Align.center(Panel("[bold green]SUCCESS![/] Your password has been updated.", border_style="green", expand=False)))
 
-    # 7. Success Summary
     success_msg = Text.assemble(
         ("PASSWORD RESET SUCCESSFUL\n\n", "bold green"),
         ("The credentials for ", "white"),
@@ -203,18 +182,16 @@ def forgot_password(system):
 # -------------------------------
 def user_dashboard_menu(user_obj):
     while True:
-        # 1. Refresh and Clear
         events = load_all_events() 
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        # 2. Personalized Header
         header_text = Text.assemble(
             (" Welcome back, ", "white"),
             (f"{user_obj.user_id}", "bold magenta"),
             ("! ", "white")
         )
         
-        # 3. Menu Options - Categorized for better UX
+        # Menu Options 
         menu_content = Text()
         menu_content.append("\n [1] ", style="bold magenta")
         menu_content.append("Create New Booking      ", style="bold magenta")
@@ -233,20 +210,20 @@ def user_dashboard_menu(user_obj):
         menu_content.append(" [7] ", style="bold red")
         menu_content.append("Shutdown System\n", style="bold red")
 
-        # 4. Dashboard Panel
+        # Dashboard Panel
         dashboard_panel = Panel(
             Align.center(menu_content),
             title=header_text,
             subtitle="[dim]Kork Plus User Portal[/]",
             border_style="magenta",
-            box=ROUNDED, # Rounded corners look friendlier for users
+            box=ROUNDED,
             width=max(50, min(90, int(console.width * 0.6)))
         )
 
         console.print("\n" * 2)
         console.print(Align.center(dashboard_panel))
 
-        # 5. Input Prompt
+        # Input Prompt
         prompt_space = " " * (int(console.width / 2) - 12)
         choice = console.input(f"{prompt_space}[bold magenta]Action ❱ [/]").strip()
 
