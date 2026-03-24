@@ -190,20 +190,20 @@ def menu_analyze():
             break # Returns to the main admin_dashboard loop
 
 def view_sales_trend_graph():
-    # 1. Load Data
+    # Load Data
     bookings = load_all_bookings()
     if not bookings:
         console.print("[bold red]No booking data available for analysis.[/]")
         return
 
-    # 2. Ask Admin for the Scale (Daily, Weekly, Monthly)
+    # Ask Admin for the Scale (Daily, Weekly, Monthly)
     scale = Prompt.ask(
         "\n[bold white]View sales trend by[/]", 
         choices=["daily", "weekly", "monthly"], 
         default="daily"
     )
 
-    # 3. Aggregate Data into Time Buckets
+    # Aggregate Data into Time Buckets
     trend_data = {}
     for b in bookings:
         # Get the date string (or use today if missing)
@@ -307,16 +307,16 @@ def view_daily_growth():
 def view_daily_comparison_graph():
     bookings = load_all_bookings()
     
-    # 1. Get the exact date strings for Today and Yesterday
+    #  Get the exact date strings for Today and Yesterday
     # Based on your current system time: 2026-03-20
     today_str = datetime.now().strftime("%Y-%m-%d")
     yesterday_str = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     
-    # 2. Initialize counters
+    # Initialize counters
     today_count = 0
     yesterday_count = 0
     
-    # 3. Loop through and only sum up the quantities for these two days
+    # Loop through and only sum up the quantities for these two days
     for b in bookings:
         b_date = b.get("date_booked", "")
         b_qty = int(b.get("quantity", 0))
@@ -326,7 +326,7 @@ def view_daily_comparison_graph():
         elif b_date == yesterday_str:
             yesterday_count += b_qty
 
-    # 4. Create the Bar Chart
+    #  Create the Bar Chart
     plt.close('all')
     plt.figure(figsize=(7, 6))
     
@@ -358,7 +358,7 @@ def view_daily_comparison_graph():
 if __name__ == "__main__":
     # calculate_total_revenue()
     # view_top_events()
-    view_sales_extremes()
+    # view_sales_extremes()
     # view_sales_trend_graph()
     # view_daily_growth()
-    # view_daily_comparison_graph()
+    view_daily_comparison_graph()

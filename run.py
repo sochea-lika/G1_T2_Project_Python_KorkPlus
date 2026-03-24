@@ -1,5 +1,5 @@
-from admin.admin import main as admin_menu  # your existing admin panel
-from user.user import menu as user_menu   # your user registration/login + dashboard
+from admin.admin import main as admin_menu  # existing admin panel
+from user.user import menu as user_menu   # user registration/login + dashboard
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -14,13 +14,13 @@ def main():
     while True:
         try:
 
-            # 1. Clear the screen so the menu always stays at the top
+            # Clear the screen so the menu always stays at the top
             os.system('cls' if os.name == 'nt' else 'clear')
 
             # Calculate responsive width
             dynamic_width = max(40, min(80, int(console.width * 0.5)))
 
-            # 2. Build Menu Content
+            # Build Menu Content
             menu_content = Text()
             menu_content.append("\n") 
             menu_content.append(" [1] ", style="bold yellow")
@@ -31,7 +31,7 @@ def main():
             menu_content.append("QUIT SYSTEM\n", style="bold red")
             menu_content.append("\n") 
 
-            # 3. Create the Panel
+            # Create the Panel
             menu_panel = Panel(
                 Align.center(menu_content),
                 title="[bold reverse #6272a4]  KORK PLUS EVENT SYSTEM  [/]",
@@ -41,11 +41,10 @@ def main():
                 box=DOUBLE 
             )
 
-            # 4. Print layout
             console.print("\n" * 2) 
             console.print(Align.center(menu_panel))
             
-            # 5. Styled Prompt - Indented to look centered under the panel
+            # Styled Prompt - Indented to look centered under the panel
             prompt_space = " " * (int(console.width / 2) - 12)
             choice = console.input(f"{prompt_space}[bold yellow]❱❱ Choice (1-3): [/]").strip()
 
@@ -54,7 +53,6 @@ def main():
             elif choice == "2":
                 user_menu()
             elif choice == "3":
-                # A nice exit message
                 console.print(Align.center("\n[bold red]Shutting down... Goodbye![/]\n"))
                 break
             else:
